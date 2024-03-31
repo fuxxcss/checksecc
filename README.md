@@ -1,7 +1,7 @@
 # checksecc
-Not just a cc rewrite.
+Not just a c rewrite.
 ## introduction
-The checksecc is a cc rewrite of checksec but has some highlights. It retains all the core functionality of checksec,you can operate on it just like the original.
+The checksecc is a c rewrite of checksec but has some highlights. It retains all the core functionality of checksec,you can operate on it just like the original.
 ## highlights
 remote check:<br>
 You can compile it on modern operating systems such as linux or win, and then check the remote linux host to facilitate further information gathering on a reverse shell.<br>
