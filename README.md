@@ -9,3 +9,5 @@ C/C++ API:<br>
 The checksecc provides a library and documentation to help you to do more flexible operation with this api.
 ## todo
 We expect more modern operating systems to be included in the host and remote host list.
+## Something
+we removed selfrando，it's uncommon.
