@@ -16,6 +16,11 @@
     return false;\
 };
 
+#define CHK_ERROR4(info) {\
+    printf("CHK ERROR:%s\n",info); \
+    return NULL;\
+};
+
 /*  check files func    */
 void chk_file(char *option,chk_file_option cfo);
 
