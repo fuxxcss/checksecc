@@ -5,21 +5,21 @@
 /*  expection handle    */
 #define CHK_ERROR1(info) {\
     printf("CHK ERROR:%s\n",info); \
-};
+}
 
 #define CHK_ERROR2(info1,info2) {\
     printf("CHK ERROR:%s, %s\n",info1,info2); \
-};
+}
 
 #define CHK_ERROR3(info) {\
     printf("CHK ERROR:%s\n",info); \
     return false;\
-};
+}
 
 #define CHK_ERROR4(info) {\
     printf("CHK ERROR:%s\n",info); \
     return NULL;\
-};
+}
 
 /*  check files func    */
 void chk_file(char *option,chk_file_option cfo);

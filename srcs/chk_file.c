@@ -320,13 +320,6 @@ void chk_file_one_elf(Binary *elf){
         elf_info->chk_next=new;
         elf_info=new;
     }
-    /*  todo    */
-    /*  1 fortify-related check function    */
-    char **fortify_array=chk_elf_fortify(elf);
-    CHK_PRINT("FORTIFY",*fortify_array[0]);
-    CHK_PRINT("Fortified",*fortify_array[1]);
-    CHK_PRINT("Fortifiable",*fortify_array[2]);
-
     if(EXTENTED){
         /*  We have 2 extented check functions  */
         char *(*chk_extented_func[CHK_EXT_NUM])(Binary*)={
@@ -358,15 +351,7 @@ void chk_file_one_pe(Binary *pe){
     return false;
 }
 
-void chk_file_one(char *fn,int fd){
-    /*  fortify?    */
-    if(FILE_FORTIFY) {
-        chk_file_fortify(fn,fd);
-        return;
-    }
-    /*  binary load    */
-    Binary *bin=load_binary(fn);
-    if(bin ==NULL) return false;
+void chk_file_one(Binary *bin){
     /*  elf or pe   */
     switch (bin->bin_type)
     {
@@ -382,21 +367,16 @@ void chk_file_one(char *fn,int fd){
     }
 }
 
-void chk_file_fortify(char *fn,int fd){
-    Binary *bin=load_binary(fn,fd);
-    if(bin->bin_type == BIN_TYPE_PE) CHK_ERROR3("PE type is unsupported.");
-}
-
 void chk_file(char *option,chk_file_option cfo){
     bool stat;
-    int fd;
     switch (cfo)
     {
     case cfo_file:
-        /*  open file  */
-        if((fd=open(option,O_RDONLY)) < 0) CHK_ERROR2(option,"file is not exist or not readable");
+        /*  load file  */
+        Binary *bin=load_binary(option);
+        if(bin == NULL) return;
         /*  check one file  */
-        chk_file_one(option,fd);
+        chk_file_one(bin);
         break;
     case cfo_dir:
         /*  open dir*/
@@ -416,11 +396,6 @@ void chk_file(char *option,chk_file_option cfo){
             chk_file(file,cfo_file);
             file=strtok(option,"|");
         }
-        break;
-    case cfo_fortify:
-        /*  set fortify flag    */
-        FILE_FORTIFY=true;
-        chk_file(option,cfo_file);
         break;
     }
 }

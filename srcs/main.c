@@ -17,8 +17,6 @@ static void help(){
       --proc-all\n\
       --proc-libs={process ID}\n\
       --kernel[=kconfig]\n\
-      --fortify-file={executable-file}\n\
-      --fortify-proc={process ID}\n\
       --version\n\
       --help\n\n\
      ## Modifiers\n\
@@ -48,8 +46,6 @@ static struct option long_options[]={
     {"proc-all",no_argument,NULL,'4'},
     {"proc-libs",required_argument,NULL,'5'},
     {"kernel",optional_argument,NULL,'6'},
-    {"fortify-file",required_argument,NULL,'7'},
-    {"fortify-proc",required_argument,NULL,'8'},
     {"version",no_argument,NULL,'v'},
     {"help",no_argument,NULL,'h'},
     {"debug",no_argument,NULL,'d'},
@@ -115,15 +111,6 @@ static void parse_args(int *pargc,char ***pargv){
             func=CHK_KERNEL;
             arg=optarg;
             break;
-        case '7':
-            func=CHK_FILE;
-            arg=optarg;
-            chk_mode=cfo_fortify;
-            break;
-        case '8':
-            func=CHK_PROC;
-            arg=optarg;
-            chk_mode=cpo_fortify;
         case 'd':
             DEBUG=true;
             break;

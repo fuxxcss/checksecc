@@ -13,7 +13,7 @@
 #define LDR_ERROR2(info1,info2) {\
     printf("LDR ERROR:%s %s\n",info1,info2); \
     return NULL;\
-};
+}
 
 /*  elf format  */
 #define ELF_MAGIC 0x464c457f

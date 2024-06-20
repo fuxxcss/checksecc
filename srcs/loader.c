@@ -364,6 +364,7 @@ static void load_info(Binary *bin,void *mem){
 Binary *load_binary(char *fn){
     /*  file init */
     int fd=open(fn,O_RDONLY);
+    if(fd < 0) LDR_ERROR2(fn,"file is not exist or not readable");
     struct stat file_stat;
     void *file_mem;
     int file_size;
