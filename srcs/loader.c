@@ -369,7 +369,8 @@ Binary *load_binary(char *fn){
     void *file_mem;
     int file_size;
     char *file_name;
-    fstat(fd,&file_stat);
+    int fs=fstat(fd,&file_stat);
+    if(fs < 0) LDR_ERROR2(fn,"fstat failed");
     file_size=file_stat.st_size;
     file_name=fn;
     file_mem=mmap(NULL,file_size,PROT_READ | PROT_WRITE,MAP_PRIVATE,fd,0);

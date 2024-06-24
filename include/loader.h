@@ -2,6 +2,7 @@
 #define _loader_h_
 
 #include<stdio.h>
+#include<stdlib.h>
 #include<stdint.h>
 #include<elf.h>
 #include"pe.h"
@@ -14,6 +15,9 @@
     printf("LDR ERROR:%s %s\n",info1,info2); \
     return NULL;\
 };
+
+/*  easy malloc */
+#define MALLOC(num,type) (*type)malloc(num*sizeof(type));
 
 /*  elf format  */
 #define ELF_MAGIC 0x464c457f

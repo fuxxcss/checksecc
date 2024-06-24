@@ -1,11 +1,11 @@
 #ifndef _TYPES_H_
 #define _TYPES_H_
 
-/*  extern flag   */
-extern bool DEBUG=false;
-extern bool VERBOSE=false;
-extern bool EXTENTED=false;
-extern output OUTPUT=cli;
+/*  global flag   */
+bool DEBUG;
+bool VERBOSE;
+bool EXTENTED;
+output OUTPUT;
 
 /*  macro constant  */
 #define CHK_BAS_NUM 8

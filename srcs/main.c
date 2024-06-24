@@ -62,6 +62,12 @@ static uint8_t chk_mode;
 
 /*  parse args  */
 static void parse_args(int *pargc,char ***pargv){
+    /*  default global flag */
+    DEBUG=false;
+    VERBOSE=false;
+    EXTENTED=false;
+    OUTPUT=cli;
+    /*  help page   */
     if(*pargc <2) help();
     /*  option args */
     char *optstring="vh";

@@ -261,6 +261,8 @@ char *chk_elf_stripped(Binary *elf){
 
 /*  check sanitized */
 char *chk_elf_sanitized(Binary *elf){
+/*  search interesting funcs    */
+    Symbol *sym=elf->sym->sym_next;
     /*  check asan  */
     bool asan=false;
     /*  check tsan  */
@@ -269,9 +271,19 @@ char *chk_elf_sanitized(Binary *elf){
     bool msan=false;
     /*  check lsan  */
     bool lsan=false;
+    char *size6[4]={
+        "__asan",
+        "__tsan",
+        "__msan",
+        "__lsan"
+    };
     /*  check ubsan */
     bool ubsan=false;
     /*  check dfsan */
+    while(sym){
+        strncpy(sym->sym_name,"__asan",)
+        sym=sym->sym_next;
+    }
     bool dfsan=false;
     /*  check cfi */
     bool cfi=false;
@@ -283,6 +295,7 @@ char *chk_elf_sanitized(Binary *elf){
 
 /*  check fortified */
 char *chk_elf_fortified(Binary *elf){
+    /*  check FORTIFY_SOURCE    */
 }
 
 void chk_file_one_elf(Binary *elf){
