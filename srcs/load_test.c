@@ -4,7 +4,7 @@
 #include<fcntl.h>
 
 int main(){
-    Binary *bin=load_binary("/root/test");
+    Binary *bin=load_binary("/root/test.exe");
     if(bin){
     show_sections(bin);
     show_symbols(bin);

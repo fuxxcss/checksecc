@@ -15,6 +15,9 @@
     return NULL;\
 }
 
+/*  easy malloc */
+#define MALLOC(num,type) (type*)malloc(num*sizeof(type))
+
 /*  elf format  */
 #define ELF_MAGIC 0x464c457f
 #define E32_flag 1
@@ -33,9 +36,11 @@ typedef Elf64_Dyn E64_dyn;
 
 /*  pe format   */
 #define MZ_MAGIC 0x5a4d
-#define PE_ENTRY_OFFSET sizeof(uint32_t) <<2
+/*  do not forget the () */
+#define PE_ENTRY_OFFSET (sizeof(uint32_t) <<2)
 typedef struct mz_hdr MZ_fh;
 typedef struct pe_hdr PE_fh;
+typedef struct section_header PE_sh;
 
 /*  enum type   */
 typedef enum {
