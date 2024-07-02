@@ -1,7 +1,7 @@
 /*  check files */
 
 #include<stdio.h>
-#include"stdlib.h"
+#include<stdlib.h>
 #include<dirent.h>
 #include<string.h>
 #include<fcntl.h>
@@ -260,41 +260,93 @@ char *chk_elf_stripped(Binary *elf){
 }
 
 /*  check sanitized */
-char *chk_elf_sanitized(Binary *elf){
-/*  search interesting funcs    */
-    Symbol *sym=elf->sym->sym_next;
-    /*  check asan  */
-    bool asan=false;
-    /*  check tsan  */
-    bool tsan=false;
-    /*  check msan  */
-    bool msan=false;
-    /*  check lsan  */
-    bool lsan=false;
-    char *size6[4]={
+char **chk_elf_sanitized(Binary *elf){
+    /*  check [asan, tsan, msan, lsan]*/
+    uint8_t size6=4;
+    bool bool6[4]={
+        false,
+        false,
+        false,
+        false
+    };
+    char *str6[4]={
         "__asan",
         "__tsan",
         "__msan",
         "__lsan"
     };
-    /*  check ubsan */
-    bool ubsan=false;
-    /*  check dfsan */
+    /*  check [ubsan, dfsan] */
+    uint8_t size7=2;
+    bool bool7[2]={
+        false,
+        false
+    };
+    char *str7[2]={
+        "__ubsan",
+        "__dfsan"
+    };
+    /*  check [safe stack] */
+    uint8_t size11=1;
+    bool bool11[1]={
+        false,
+    };
+    char *str11[1]={
+        "__safestack"
+    };
+    /*  check dynsym for these strings*/
+    Symbol *sym=elf->sym->sym_next;
     while(sym){
-        strncpy(sym->sym_name,"__asan",)
+        /*  only need dynamic func*/
+        if(sym->sym_type == SYM_TYPE_FUNC) continue;
+        const char *name=sym->sym_name;
+        for(int size=0;size<size6;size++){
+            if(strncpy(name,str6[size],size6) == 0)
+                bool6[size]=true;
+        }
+        for(int size=0;size<size7;size++){
+            if(strncpy(name,str7[size],size7) == 0)
+                bool7[size]=true;
+        }
+        for(int size=0;size<size11;size++){
+            if(strncpy(name,str11[size],size11) == 0)
+                bool11[size]=true;
+        }
         sym=sym->sym_next;
     }
-    bool dfsan=false;
-    /*  check cfi */
-    bool cfi=false;
-    /*  check safe stack */
-    bool safe_stack=false;
-    /*  check shadow call stack*/
-    bool shadow_call_stack=false;
+    /*  
+        check indirect branch trace 
+        gcc -fcf-protection=full
+    */
+    bool ibt=false;
+    /*  rough implementation:search endbr64, f30f1efa*/
+    Section *text;
+    Section *sect=elf->sect->sect_next;
+    while(sect){
+        if(sect->sect_name == ".text"){
+            text=sect;
+            break;
+        }
+        sect=sect->sect_next;
+    }
+    if(!text) CHK_ERROR4("text section not found.");
+    for(int num=0;num < text->sect_size;num++){
+        uint8_t byte=sect->sec_bytes[num];
+        if(byte== (uint8_t)0xf3)
+            if(byte== (uint8_t)0x0f)
+                if(byte== (uint8_t)0x1e)
+                    if(byte== (uint8_t)0xfa)
+                        ibt=true;
+    }
+    /*  
+        check shadow call stack
+        now only for aarch64
+    */
+    bool ss=false;
+    return "Asan \n"
 }
 
 /*  check fortified */
-char *chk_elf_fortified(Binary *elf){
+char **chk_elf_fortified(Binary *elf){
     /*  check FORTIFY_SOURCE    */
 }
 
@@ -345,7 +397,7 @@ void chk_file_one_elf(Binary *elf){
         };
         for(int num=0;num < CHK_EXT_NUM;num++){
             chk_info *new=(chk_info*)malloc(sizeof(chk_info));
-            new->chk_type=chk_basic_array[num];
+            new->chk_type=chk_extented_array[num];
             char *result=chk_basic_func[num](elf);
             /*  error handler   */
             if(!result) new->chk_result="ERROR";

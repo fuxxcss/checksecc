@@ -280,33 +280,46 @@ static void load_elf(Binary *elf,void *mem){
     load_elf_symbols(elf);
 }
 
-static load_pe_sections(Binary *pe,void *mem){
-    /*  section headers number  */
-    uint64_t sh_num=pe->hd->Pxheader.peh->sections;
+static void load_pe_symbols(Binary *pe,uintptr_t addr){
+    Symbol *sym=MALLOC(1,Symbol);
+    /*  tail insert */
+    /*  head    */
+    pe->sym=sym;
+    /*  tail    */
+    sym->sym_next=NULL;
+}
+
+static void load_pe_sections(Binary *pe,uintptr_t *sh_info){
+    char *name;
+    uint64_t size,flags;
+    uintptr_t vma,sc_addr;
     Section *sect=MALLOC(1,Section);
     /*  tail insert */
     /*  head    */
     pe->sect=sect;
-    uint64_t sh_size=0;
-    for(int num=0;num < sh_num;num++){
-        uintptr_t sh_addr=(uintptr_t)mem+sh_size;
+    for(int sh_num=0;sh_num < sh_info[2];sh_num++){
+        uintptr_t sh_addr=sh_info[1]+sh_num*sizeof(PE_sh);
         PE_sh *sh=(PE_sh*)sh_addr;
         Section *new=MALLOC(1,Section);
-        new->sect_name=sh->name;
-        sh_size=sh->raw_data_size;
-        new->sect_size=sh_size;
-        new->sect_vma=sh->virtual_address;
-        if(sh->flags & IMAGE_SCN_CNT_CODE)
+        name=sh->name;
+        size=sh->raw_data_size;
+        vma=sh->virtual_address;
+        flags=sh->flags;
+        sc_addr=sh_info[0]+sh->data_addr;
+        /*  init Section    */
+        new->sect_name=name;
+        new->sect_size=size;
+        new->sect_vma=vma;
+        if(flags & IMAGE_SCN_CNT_CODE)
             new->sect_type=SECT_TYPE_CODE;
         else
             new->sect_type=SECT_TYPE_DATA;
         /*  load section contents   */
         /* do not load .bss ,IT IS NOBITS   */
-        if(sh->flags & IMAGE_SCN_CNT_UNINITIALIZED_DATA) continue;
-        uint8_t *bytes=MALLOC(sh_size,uint8_t);
+        if(flags & IMAGE_SCN_CNT_UNINITIALIZED_DATA) continue;
+        uint8_t *bytes=MALLOC(size,uint8_t);
         new->sec_bytes=bytes;
-        uintptr_t sc_addr=(uintptr_t)mem+sh->data_addr;
-        for(uint64_t offset=0;offset < sh_size;offset++)
+        for(uint64_t offset=0;offset < size;offset++)
             bytes[offset]=*(uint8_t*)(sc_addr+offset);
         sect->sect_next=new;
         sect=new;
@@ -317,8 +330,19 @@ static load_pe_sections(Binary *pe,void *mem){
 
 static void load_pe(Binary *pe,void *mem){
     /*  load sections   */
-    load_pe_sections(pe,mem);
-
+    /*  sh_info [mem,sh_addr,sh_num]   */
+    uintptr_t sh_info[3];
+    /*  file base   */
+    sh_info[0]=(uintptr_t)mem;
+    /*  section header  addr    */
+    uintptr_t peh_addr=pe->hd->Fileheader.mzfh->peaddr;
+    uintptr_t option_size=pe->hd->Pxheader.peh->opt_hdr_size;
+    sh_info[1]=sh_info[0]+sizeof(PE_fh)+peh_addr+option_size;
+    /*  section num */
+    sh_info[2]=pe->hd->Pxheader.peh->sections;
+    load_pe_sections(pe,sh_info);
+    /*  load symbols    */
+    load_pe_symbols(pe,mem);
 }
 
 static void load_info_arch(Binary *bin,uint64_t machine){
@@ -423,6 +447,8 @@ Binary *load_binary(char *fn){
     if(bin->bin_type < 0) LDR_ERROR2(fn,"unsupported binary type.");
     if(bin->bin_arch < 0) LDR_ERROR2(fn,"unsupported architecture.");
     if(bin->entry ==0 ) LDR_ERROR1(fn,"cannot find entry point.");
+    bin->sect=NULL;
+    bin->sym=NULL;
     switch (bin->bin_type)
     {
     case BIN_TYPE_ELF32:
@@ -435,9 +461,9 @@ Binary *load_binary(char *fn){
         load_pe(bin,file_mem);
         break;
     }
-    if(bin->sect->sect_next == NULL) LDR_ERROR2(fn,"load sections failed.");
-    if(bin->sym->sym_next == NULL) LDR_ERROR2(fn,"load symbols failed.");
-    if(bin->hd == NULL) LDR_ERROR2(fn,"load headers failed.");
+    if(bin->sect->sect_next == NULL) LDR_ERROR1(fn,"load sections failed.");
+    if(bin->sym->sym_next == NULL) LDR_ERROR1(fn,"load symbols failed.");
+    if(bin->hd == NULL) LDR_ERROR1(fn,"load headers failed.");
     return bin;
 }
 
