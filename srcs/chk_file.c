@@ -261,36 +261,19 @@ char *chk_elf_stripped(Binary *elf){
 
 /*  check sanitized */
 char **chk_elf_sanitized(Binary *elf){
-    /*  check [asan, tsan, msan, lsan]*/
-    uint8_t size6=4;
-    bool bool6[4]={
-        false,
-        false,
-        false,
-        false
-    };
-    char *str6[4]={
+    /*  
+        CHK_SAN_NUM 7
+        [asan, tsan, msan, lsan, 
+        ubsan, dfsan, safestack]
+    */
+    bool san_bool[CHK_SAN_NUM]={false};
+    char *san_str[CHK_SAN_NUM]={
         "__asan",
         "__tsan",
         "__msan",
-        "__lsan"
-    };
-    /*  check [ubsan, dfsan] */
-    uint8_t size7=2;
-    bool bool7[2]={
-        false,
-        false
-    };
-    char *str7[2]={
+        "__lsan",
         "__ubsan",
-        "__dfsan"
-    };
-    /*  check [safe stack] */
-    uint8_t size11=1;
-    bool bool11[1]={
-        false,
-    };
-    char *str11[1]={
+        "__dfsan",
         "__safestack"
     };
     /*  check dynsym for these strings*/
@@ -299,26 +282,25 @@ char **chk_elf_sanitized(Binary *elf){
         /*  only need dynamic func*/
         if(sym->sym_type == SYM_TYPE_FUNC) continue;
         const char *name=sym->sym_name;
-        for(int size=0;size<size6;size++){
-            if(strncpy(name,str6[size],size6) == 0)
-                bool6[size]=true;
-        }
-        for(int size=0;size<size7;size++){
-            if(strncpy(name,str7[size],size7) == 0)
-                bool7[size]=true;
-        }
-        for(int size=0;size<size11;size++){
-            if(strncpy(name,str11[size],size11) == 0)
-                bool11[size]=true;
+        /*  compare strlen(san_str[.]) bytes */
+        for(int i=0;i<CHK_SAN_NUM;i++){
+            if(strncpy(name,san_str[i],strlen(san_str[i])) == 0)
+                san_bool[i]=true;
         }
         sym=sym->sym_next;
     }
+    
+    /*  CHK_CET_NUM 2   */
+    bool cet_bool[CHK_CET_NUM]={false};
+    char *cet_str[CHK_CET_NUM]={
+        "cet-ibt",
+        "cet-shadow-stack"
+    };
     /*  
         check indirect branch trace 
         gcc -fcf-protection=full
+        rough implementation:search endbr64, f30f1efa
     */
-    bool ibt=false;
-    /*  rough implementation:search endbr64, f30f1efa*/
     Section *text;
     Section *sect=elf->sect->sect_next;
     while(sect){
@@ -329,20 +311,29 @@ char **chk_elf_sanitized(Binary *elf){
         sect=sect->sect_next;
     }
     if(!text) CHK_ERROR4("text section not found.");
-    for(int num=0;num < text->sect_size;num++){
-        uint8_t byte=sect->sec_bytes[num];
-        if(byte== (uint8_t)0xf3)
-            if(byte== (uint8_t)0x0f)
-                if(byte== (uint8_t)0x1e)
-                    if(byte== (uint8_t)0xfa)
-                        ibt=true;
-    }
+    const uint8_t endbr64[4]={0xf3,0x0f,0x1e,0xfa};
+    if(strstr(sect->sec_bytes,endbr64)) cet_bool[0]=true;
     /*  
         check shadow call stack
         now only for aarch64
     */
-    bool ss=false;
-    return "Asan \n"
+    bool cet_bool[1]=false;
+
+    /*  return string array */
+    static char* ret[CHK_SAN_NUM+CHK_CET_NUM+1];
+    for(int i=0;i<CHK_SAN_NUM;i++){
+        /*  __asan -> asan  */
+        ret[i]=san_str[i]+2;
+        if(san_bool[i] ==false) strcat(ret[i]," \033[32mNO\033[m\n");
+        else strcat(ret[i]," \033[31mYes\033[m\n");
+    }
+    for(int i=CHK_SAN_NUM;i<CHK_CET_NUM+CHK_SAN_NUM;i++){
+        ret[i]=cet_str[i];
+        if(cet_bool[i] ==false) strcat(ret[i]," \033[32mNO\033[m\n");
+        else strcat(ret[i]," \033[31mYes\033[m\n");
+    }
+    ret[CHK_SAN_NUM+CHK_CET_NUM]=NULL;
+    return ret;
 }
 
 /*  check fortified */
@@ -379,8 +370,8 @@ void chk_file_one_elf(Binary *elf){
         chk_info *new=(chk_info*)malloc(sizeof(chk_info));
         new->chk_type=chk_basic_array[num];
         char *result=chk_basic_func[num](elf);
-        /*  error handler   */
-        if(!result) new->chk_result="ERROR";
+        /*  null handler   */
+        if(!result) new->chk_result="NULL";
         else new->chk_result=result;
         elf_info->chk_next=new;
         elf_info=new;
@@ -396,14 +387,16 @@ void chk_file_one_elf(Binary *elf){
             "Fortified"
         };
         for(int num=0;num < CHK_EXT_NUM;num++){
-            chk_info *new=(chk_info*)malloc(sizeof(chk_info));
-            new->chk_type=chk_extented_array[num];
-            char *result=chk_basic_func[num](elf);
-            /*  error handler   */
-            if(!result) new->chk_result="ERROR";
-            else new->chk_result=result;
-            elf_info->chk_next=new;
-            elf_info=new;
+            char **result=chk_extented_func[num](elf);
+            /*  null handler   */
+            while(*result){
+                chk_info *new=(chk_info*)malloc(sizeof(chk_info));
+                new->chk_type=chk_extented_array[num];
+                new->chk_result=*result;
+                elf_info->chk_next=new;
+                elf_info=new;
+                result++;
+            }
         }
     }
     /*  tail    */
@@ -413,7 +406,7 @@ void chk_file_one_elf(Binary *elf){
 }
 
 void chk_file_one_pe(Binary *pe){
-    return false;
+    return;
 }
 
 void chk_file_one(Binary *bin){

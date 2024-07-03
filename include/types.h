@@ -10,10 +10,12 @@ output OUTPUT;
 /*  macro constant  */
 #define CHK_BAS_NUM 8
 #define CHK_EXT_NUM 2
+#define CHK_SAN_NUM 7
+#define CHK_CET_NUM 2
 
 /*  c bool enum */
 typedef enum{
-    false=-1,
+    false=0,
     true
 }bool;
 
