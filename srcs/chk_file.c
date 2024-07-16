@@ -9,6 +9,20 @@
 #include"types.h"
 #include"loader.h"
 
+/*  append string [des src]*/
+char *str_append(char *des,char *src){
+    if(!des || !src) return NULL;
+    size_t des_size=strlen(des);
+    size_t src_size=strlen(src);
+    size_t append_size=des_size+src_size;
+    /*  one for \0  */
+    char *append=MALLOC(++append_size,char);
+    for(int i=0;i<des_size;i++) append[i]=des[i];
+    for(int i=des_size;i<append_size;i++) append[i]=src[i];
+    append[append_size]='\0';
+    return append;
+}
+
 /*  elf name    */
 char *chk_elf_name(Binary *elf){
     return elf->bin_name;
@@ -29,7 +43,7 @@ char *chk_elf_relro(Binary *elf){
     Section *dynamic=NULL;
     Section *sect=elf->sect->sect_next;
     while(sect){
-        if(sect->sect_name == ".dynamic"){
+        if(strcmp(sect->sect_name,".dynamic")==0){
             dynamic=sect;
             break;
         }
@@ -41,7 +55,7 @@ char *chk_elf_relro(Binary *elf){
         case BIN_TYPE_ELF32:
             uint16_t dyn32_num=dynamic->sect_size/sizeof(E32_dyn);
             for(uint16_t num=0;num < dyn32_num;num++){
-                uintptr_t dyn32_addr=(uintptr_t)sect->sec_bytes+num*sizeof(E32_dyn);
+                uintptr_t dyn32_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E32_dyn);
                 E32_dyn *dyn32=(E32_dyn*)dyn32_addr;
                 /*  d_tag == DT_FLAGS   */
                 if(dyn32->d_tag == DT_FLAGS)
@@ -53,7 +67,7 @@ char *chk_elf_relro(Binary *elf){
         case BIN_TYPE_ELF64:
             uint16_t dyn64_num=dynamic->sect_size/sizeof(E64_dyn);
             for(uint16_t num=0;num < dyn64_num;num++){
-                uintptr_t dyn64_addr=(uintptr_t)sect->sec_bytes+num*sizeof(E64_dyn);
+                uintptr_t dyn64_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E64_dyn);
                 E64_dyn *dyn64=(E64_dyn*)dyn64_addr;
                 /*  d_tag == DT_FLAGS   */
                 if(dyn64->d_tag == DT_FLAGS)
@@ -136,7 +150,7 @@ char *chk_elf_pie(Binary *elf){
     Section *dynamic=NULL;
     Section *sect=elf->sect->sect_next;
     while(sect){
-        if(sect->sect_name == ".dynamic"){
+        if(strcmp(sect->sect_name,".dynamic")==0){
             dynamic=sect;
             break;
         }
@@ -148,7 +162,7 @@ char *chk_elf_pie(Binary *elf){
         case BIN_TYPE_ELF32:
             uint16_t dyn32_num=dynamic->sect_size/sizeof(E32_dyn);
             for(uint16_t num=0;num < dyn32_num;num++){
-                uintptr_t dyn32_addr=(uintptr_t)sect->sec_bytes+num*sizeof(E32_dyn);
+                uintptr_t dyn32_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E32_dyn);
                 E32_dyn *dyn32=(E32_dyn*)dyn32_addr;
                 /*  d_tag == DT_DEBUG   */
                 if(dyn32->d_tag == DT_DEBUG) debug=true;
@@ -157,7 +171,7 @@ char *chk_elf_pie(Binary *elf){
         case BIN_TYPE_ELF64:
             uint16_t dyn64_num=dynamic->sect_size/sizeof(E64_dyn);
             for(uint16_t num=0;num < dyn64_num;num++){
-                uintptr_t dyn64_addr=(uintptr_t)sect->sec_bytes+num*sizeof(E64_dyn);
+                uintptr_t dyn64_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E64_dyn);
                 E64_dyn *dyn64=(E64_dyn*)dyn64_addr;
                 /*  d_tag == DT_DEBUG   */
                 if(dyn64->d_tag == DT_DEBUG) debug=true;
@@ -173,7 +187,7 @@ char *chk_elf_rpath(Binary *elf){
     Section *dynamic=NULL;
     Section *sect=elf->sect->sect_next;
     while(sect){
-        if(sect->sect_name == ".dynamic"){
+        if(strcmp(sect->sect_name,".dynamic")==0){
             dynamic=sect;
             break;
         }
@@ -186,7 +200,7 @@ char *chk_elf_rpath(Binary *elf){
         case BIN_TYPE_ELF32:
             uint16_t dyn32_num=dynamic->sect_size/sizeof(E32_dyn);
             for(uint16_t num=0;num < dyn32_num;num++){
-                uintptr_t dyn32_addr=(uintptr_t)sect->sec_bytes+num*sizeof(E32_dyn);
+                uintptr_t dyn32_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E32_dyn);
                 E32_dyn *dyn32=(E32_dyn*)dyn32_addr;
                 /*  d_tag == DT_RPATH   */
                 if(dyn32->d_tag == DT_RPATH) rpath=true;
@@ -195,7 +209,7 @@ char *chk_elf_rpath(Binary *elf){
         case BIN_TYPE_ELF64:
             uint16_t dyn64_num=dynamic->sect_size/sizeof(E64_dyn);
             for(uint16_t num=0;num < dyn64_num;num++){
-                uintptr_t dyn64_addr=(uintptr_t)sect->sec_bytes+num*sizeof(E64_dyn);
+                uintptr_t dyn64_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E64_dyn);
                 E64_dyn *dyn64=(E64_dyn*)dyn64_addr;
                 /*  d_tag == DT_RPATH   */
                 if(dyn64->d_tag == DT_RPATH) rpath=true;
@@ -211,7 +225,7 @@ char *chk_elf_runpath(Binary *elf){
     Section *dynamic=NULL;
     Section *sect=elf->sect->sect_next;
     while(sect){
-        if(sect->sect_name == ".dynamic"){
+        if(strcmp(sect->sect_name,".dynamic")==0){
             dynamic=sect;
             break;
         }
@@ -224,7 +238,7 @@ char *chk_elf_runpath(Binary *elf){
         case BIN_TYPE_ELF32:
             uint16_t dyn32_num=dynamic->sect_size/sizeof(E32_dyn);
             for(uint16_t num=0;num < dyn32_num;num++){
-                uintptr_t dyn32_addr=(uintptr_t)sect->sec_bytes+num*sizeof(E32_dyn);
+                uintptr_t dyn32_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E32_dyn);
                 E32_dyn *dyn32=(E32_dyn*)dyn32_addr;
                 /*  d_tag == DT_RUNPATH   */
                 if(dyn32->d_tag == DT_RUNPATH) runpath=true;
@@ -233,7 +247,7 @@ char *chk_elf_runpath(Binary *elf){
         case BIN_TYPE_ELF64:
             uint16_t dyn64_num=dynamic->sect_size/sizeof(E64_dyn);
             for(uint16_t num=0;num < dyn64_num;num++){
-                uintptr_t dyn64_addr=(uintptr_t)sect->sec_bytes+num*sizeof(E64_dyn);
+                uintptr_t dyn64_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E64_dyn);
                 E64_dyn *dyn64=(E64_dyn*)dyn64_addr;
                 /*  d_tag == DT_RUNPATH   */
                 if(dyn64->d_tag == DT_RUNPATH) runpath=true;
@@ -260,7 +274,7 @@ char *chk_elf_stripped(Binary *elf){
 }
 
 /*  check sanitized */
-char **chk_elf_sanitized(Binary *elf){
+chk_info *chk_elf_sanitized(Binary *elf){
     /*  
         CHK_SAN_NUM 7
         [asan, tsan, msan, lsan, 
@@ -268,13 +282,13 @@ char **chk_elf_sanitized(Binary *elf){
     */
     bool san_bool[CHK_SAN_NUM]={false};
     char *san_str[CHK_SAN_NUM]={
-        "__asan",
-        "__tsan",
-        "__msan",
-        "__lsan",
-        "__ubsan",
-        "__dfsan",
-        "__safestack"
+        "asan",
+        "tsan",
+        "msan",
+        "lsan",
+        "ubsan",
+        "dfsan",
+        "safestack"
     };
     /*  check dynsym for these strings*/
     Symbol *sym=elf->sym->sym_next;
@@ -284,7 +298,9 @@ char **chk_elf_sanitized(Binary *elf){
         const char *name=sym->sym_name;
         /*  compare strlen(san_str[.]) bytes */
         for(int i=0;i<CHK_SAN_NUM;i++){
-            if(strncpy(name,san_str[i],strlen(san_str[i])) == 0)
+            char *str=str_append("__",san_str[i]);
+            size_t size=strlen(san_str[i]);
+            if(strncmp(name,str,size) == 0)
                 san_bool[i]=true;
         }
         sym=sym->sym_next;
@@ -304,7 +320,7 @@ char **chk_elf_sanitized(Binary *elf){
     Section *text;
     Section *sect=elf->sect->sect_next;
     while(sect){
-        if(sect->sect_name == ".text"){
+        if(strcmp(sect->sect_name,".text") == 0){
             text=sect;
             break;
         }
@@ -312,33 +328,200 @@ char **chk_elf_sanitized(Binary *elf){
     }
     if(!text) CHK_ERROR4("text section not found.");
     const uint8_t endbr64[4]={0xf3,0x0f,0x1e,0xfa};
-    if(strstr(sect->sec_bytes,endbr64)) cet_bool[0]=true;
+    if(strstr(sect->sect_bytes,endbr64)) cet_bool[0]=true;
     /*  
         check shadow call stack
         now only for aarch64
     */
     bool cet_bool[1]=false;
-
-    /*  return string array */
-    static char* ret[CHK_SAN_NUM+CHK_CET_NUM+1];
+    /*  return chk_info */
+    char *type="Sanitized";
+    chk_info *info=MALLOC(1,chk_info);
+    /*  head    */
+    chk_info *head=info;
     for(int i=0;i<CHK_SAN_NUM;i++){
-        /*  __asan -> asan  */
-        ret[i]=san_str[i]+2;
-        if(san_bool[i] ==false) strcat(ret[i]," \033[32mNO\033[m\n");
-        else strcat(ret[i]," \033[31mYes\033[m\n");
+        chk_info *new=MALLOC(1,chk_info);
+        new->chk_type=type;
+        if(san_bool[i] ==false) new->chk_result=str_append(san_str[i]," \033[32mNO\033[m\n");
+        else new->chk_result=str_append(san_str[i]," \033[31mYes\033[m\n");
+        info->chk_next=new;
+        info=new;
     }
     for(int i=CHK_SAN_NUM;i<CHK_CET_NUM+CHK_SAN_NUM;i++){
-        ret[i]=cet_str[i];
-        if(cet_bool[i] ==false) strcat(ret[i]," \033[32mNO\033[m\n");
-        else strcat(ret[i]," \033[31mYes\033[m\n");
+        chk_info *new=MALLOC(1,chk_info);
+        new->chk_type=type;
+        if(cet_bool[i] ==false) new->chk_result=str_append(cet_str[i]," \033[32mNO\033[m\n");
+        else new->chk_result=str_append(cet_str[i]," \033[31mYes\033[m\n");
+        info->chk_next=new;
+        info=new;
     }
-    ret[CHK_SAN_NUM+CHK_CET_NUM]=NULL;
-    return ret;
+    /*  tail    */
+    info->chk_next=NULL;
+
+    return head;
 }
 
 /*  check fortified */
-char **chk_elf_fortified(Binary *elf){
+typedef struct hash{
+    bool _hit;
+    char *_str;
+    struct hash *_next;
+}hashmap;
+
+chk_info *chk_elf_fortified(Binary *elf){
     /*  check FORTIFY_SOURCE    */
+    /*  search dynamic and dynstr  section*/
+    Section *dynamic=NULL;
+    Section *dynstr=NULL;
+    Section *sect=elf->sect->sect_next;
+    while(sect){
+        if(strcmp(sect->sect_name,".dynamic")==0) dynamic=sect;
+        if(strcmp(sect->sect_name,".dynstr")==0) dynstr=sect;
+        sect=sect->sect_next;
+    }
+    if(!dynamic) CHK_ERROR4("dynamic section not found.");
+    if(!dynstr) CHK_ERROR4("dynstr section not found.");
+    /*  search DT_NEEDED on .dynstr    */
+    char *libc_version=NULL;
+    uint64_t offset,addr;
+    char *libc_str="libc.so";
+    size_t libc_str_len=strlen(libc_str);
+    switch (elf->bin_type){
+        case BIN_TYPE_ELF32:
+            uint16_t dyn32_num=dynamic->sect_size/sizeof(E32_dyn);
+            for(uint16_t num=0;num < dyn32_num;num++){
+                uintptr_t dyn32_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E32_dyn);
+                E32_dyn *dyn32=(E32_dyn*)dyn32_addr;
+                /*  d_tag == DT_NEEDED  */
+                if(dyn32->d_tag == DT_NEEDED){
+                    /*  offset = d_un.d_val  */
+                    offset=dyn32->d_un.d_val;
+                    /*  so addr */
+                    addr=dynstr->sect_bytes+offset;
+                    if(strncmp(libc_str,addr,libc_str_len)==0) libc_version=addr;
+                }
+            }
+            break;
+        case BIN_TYPE_ELF64:
+            uint16_t dyn64_num=dynamic->sect_size/sizeof(E64_dyn);
+            for(uint16_t num=0;num < dyn64_num;num++){
+                uintptr_t dyn64_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E64_dyn);
+                E64_dyn *dyn64=(E64_dyn*)dyn64_addr;
+                /*  d_tag == DT_NEEDED  */
+                if(dyn64->d_tag == DT_NEEDED){
+                    /*  offset = d_un.d_val  */
+                    offset=dyn64->d_un.d_val;
+                    /*  so addr */
+                    addr=dynstr->sect_bytes+offset;
+                    if(strncmp(libc_str,addr,libc_str_len)==0) libc_version=addr;
+                }
+            }
+    }
+    if(!libc_version) CHK_ERROR4("libc and libstdc++ are not used.");
+    /*  load libc version, indexing by bin_arch*/
+    char *arch_path[CHK_LIBC_PATH_NUM]={
+        /*  ARCH_X86 = 0    */
+        "/lib/i386-linux-gnu/",
+        "/lib/x86_64-linux-gnu/",
+        "/lib/aarch64-linux-gnu/"
+    };
+    char *libc_path=str_append(arch_path[elf->bin_arch],libc_version);
+    /*  load libc   */
+    Binary *libc=load_binary(libc_path);
+    /*  keep fortify source funcs in hashmap and count it */
+    hashmap *hm=MALLOC(HASHMAP_SIZE,hashmap);
+    size_t fortify_count=0;
+    /*  init hashmap    */
+    for(int i=0;i<HASHMAP_SIZE;i++) {(hm+i)->_next=NULL; (hm+i)->_hit=false;}
+    Symbol *libc_sym=libc->sym->sym_next;
+    while(libc_sym){
+        char *suffix="_chk";
+        char *libc_func_str=libc_sym->sym_name;
+        if(strcmp(libc_func_str+strlen(libc_func_str)-strlen(suffix),suffix) ==0 ){
+            size_t libc_func_len=strlen(libc_func_str);
+            size_t map_index=(libc_func_len*libc_func_len)%HASHMAP_SIZE;
+            /* head insert  */
+            hashmap *new=MALLOC(1,hashmap);
+            new->_str=libc_func_str;
+            new->_next=(hm+map_index)->_next;
+            (hm+map_index)->_next=new;
+            fortify_count++;
+        }
+        libc_sym=libc_sym->sym_next;
+    }
+    /*  return chk_info    */
+    char *type="Fortified";
+    chk_info *info=MALLOC(1,chk_info);
+    /*  head    */
+    chk_info *head=info;
+    /*  compare elf funcs with libc funcs   */
+    /*  count fortified and fortifiable */
+    size_t fortified_count=0;
+    size_t fortifiable_count=0;
+    Symbol *elf_sym=elf->sym->sym_next;
+    while(elf_sym){
+        char *prefix="__";
+        char *elf_func_str=elf_sym->sym_name;
+        size_t elf_func_len=strlen(elf_func_str);
+        size_t map_index=(elf_func_len*elf_func_len)%HASHMAP_SIZE;
+        /*  search in hashmap   */
+        hashmap *hm_tmp=(hm+map_index)->_next;
+        while(hm_tmp){
+            /*  fortified  */
+            if(strcmp(hm_tmp->_str,elf_func_str)==0){
+                fortified_count++;
+                if(!hm_tmp->_hit){
+                    hm_tmp->_hit=true;
+                    chk_info *new=MALLOC(1,chk_info);
+                    new->chk_type=type;
+                    new->chk_result=str_append(hm_tmp->_str,"\033[31mFortified\033[m\n");
+                    info->chk_next=new;
+                    info=new;
+                }
+            }
+            /*  fortifiable  */
+            else if(strncmp(hm_tmp->_str+strlen(prefix),elf_func_str,elf_func_len)==0){
+                fortifiable_count++;
+                if(!hm_tmp->_hit){
+                    hm_tmp->_hit=true;
+                    chk_info *new=MALLOC(1,chk_info);
+                    new->chk_type=type;
+                    new->chk_result=str_append(elf_func_str,"\033[32mFortifiable\033[m\n");
+                    info->chk_next=new;
+                    info=new;
+                }
+            }
+            hm_tmp=hm_tmp->_next;
+        }
+        elf_sym=elf_sym->sym_next;
+    }
+    /*  free hashmap    */
+    free(hm);
+    /*  head insert */
+    chk_info *insert=head;
+    /*  first info : whether libc has FORTIFY SOURCE    */
+    chk_info *libc_info=MALLOC(1,chk_info);
+    libc_info->chk_type=type;
+    char *first_info="FORTIFY SOURCE support available (";
+    first_info=str_append(first_info,libc_path);
+    if(fortify_count) libc_info->chk_result=str_append(first_info,") : \033[31mYes\033[m\n");
+    else libc_info->chk_result=str_append(first_info,") : \033[32mNO\033[m\n");
+    libc_info->chk_next=insert->chk_next;
+    insert->chk_next=libc_info;
+    insert=libc_info;
+    /*  second info : whether target is fortified   */
+    chk_info *target_info=MALLOC(1,chk_info);
+    target_info->chk_type=type;
+    char *second_info="Binary compiled with FORTIFY SOURCE support (";
+    second_info=str_append(second_info,elf->bin_name);
+    if(fortified_count) target_info->chk_result=str_append(second_info,") : \033[31mYes\033[m\n");
+    else target_info->chk_result=str_append(second_info,") : \033[32mNO\033[m\n");
+    target_info->chk_next=insert->chk_next;
+    insert->chk_next=target_info;
+    /*  tail    */
+    info->chk_next=NULL;
+
+    return head;
 }
 
 void chk_file_one_elf(Binary *elf){
@@ -363,11 +546,12 @@ void chk_file_one_elf(Binary *elf){
         "RUNPATH",
         "Stripped",
     };
+    /*  current   */
+    chk_info *elf_info=MALLOC(1,chk_info);\
     /*  head    */
-    chk_info *elf_info=(chk_info*)malloc(sizeof(chk_info));
     chk_info *head=elf_info;
     for(int num=0;num < CHK_BAS_NUM;num++){
-        chk_info *new=(chk_info*)malloc(sizeof(chk_info));
+        chk_info *new=MALLOC(1,chk_info);
         new->chk_type=chk_basic_array[num];
         char *result=chk_basic_func[num](elf);
         /*  null handler   */
@@ -378,25 +562,16 @@ void chk_file_one_elf(Binary *elf){
     }
     if(EXTENTED){
         /*  We have 2 extented check functions  */
-        char *(*chk_extented_func[CHK_EXT_NUM])(Binary*)={
+        chk_info *(*chk_extented_func[CHK_EXT_NUM])(Binary*)={
             chk_elf_sanitized,
             chk_elf_fortified
         };
-        char *chk_extented_array[CHK_EXT_NUM]={
-            "Sanitized",
-            "Fortified"
-        };
         for(int num=0;num < CHK_EXT_NUM;num++){
-            char **result=chk_extented_func[num](elf);
-            /*  null handler   */
-            while(*result){
-                chk_info *new=(chk_info*)malloc(sizeof(chk_info));
-                new->chk_type=chk_extented_array[num];
-                new->chk_result=*result;
-                elf_info->chk_next=new;
-                elf_info=new;
-                result++;
-            }
+            chk_info *result=chk_extented_func[num](elf);
+            elf_info->chk_next=result->chk_next;
+            /*  find the tail   */
+            while(result->chk_next) result=result->chk_next;
+            elf_info=result;
         }
     }
     /*  tail    */

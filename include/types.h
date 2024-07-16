@@ -8,10 +8,19 @@ bool EXTENTED;
 output OUTPUT;
 
 /*  macro constant  */
+
+/*  basic check functions   */
 #define CHK_BAS_NUM 8
+/*  extented check functions    */
 #define CHK_EXT_NUM 2
+/*  sanitized num   */
 #define CHK_SAN_NUM 7
+/*  ibt and shadow-stack    */
 #define CHK_CET_NUM 2
+/*  libc path ,up to bin_arch  */
+#define CHK_LIBC_PATH_NUM 3
+/*  hashmap size    */
+#define HASHMAP_SIZE (2 << 6)
 
 /*  c bool enum */
 typedef enum{

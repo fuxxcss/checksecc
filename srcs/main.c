@@ -15,7 +15,7 @@ static void help(){
       --listfile={file list separated by |}\n\
       --proc={process name}\n\
       --proc-all\n\
-      --proc-libs={process ID}\n\
+      --proc-id={process ID}\n\
       --kernel[=kconfig]\n\
       --version\n\
       --help\n\n\
@@ -44,7 +44,7 @@ static struct option long_options[]={
     {"listfile",required_argument,NULL,'2'},
     {"proc",required_argument,NULL,'3'},
     {"proc-all",no_argument,NULL,'4'},
-    {"proc-libs",required_argument,NULL,'5'},
+    {"proc-id",required_argument,NULL,'5'},
     {"kernel",optional_argument,NULL,'6'},
     {"version",no_argument,NULL,'v'},
     {"help",no_argument,NULL,'h'},

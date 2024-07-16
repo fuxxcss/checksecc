@@ -53,7 +53,8 @@ typedef enum {
 typedef enum {
     ARCH_UNKNOWN=-1,
     ARCH_X86,
-    ARCH_X64
+    ARCH_X64,
+    ARCH_ARM64
 }bin_arch;
 
 typedef enum {
@@ -91,7 +92,7 @@ typedef struct Section{
     uintptr_t sect_vma;
     uint64_t sect_size;
     /*  contents    */
-    uint8_t *sec_bytes;
+    uint8_t *sect_bytes;
     /*  link    */
     struct Section *sect_next;
 }Section;

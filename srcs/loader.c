@@ -106,19 +106,19 @@ static void load_elf_symbols(Binary *elf){
     while(sect){
         const char *name=sect->sect_name;
         if(strcmp(name,".symtab") == 0) {
-            sym_addr[0]=(uintptr_t)sect->sec_bytes;
+            sym_addr[0]=(uintptr_t)sect->sect_bytes;
             size[0]=sect->sect_size;
         }
         else if(strcmp(name,".dynsym") == 0) {
-            sym_addr[1]=(uintptr_t)sect->sec_bytes;
+            sym_addr[1]=(uintptr_t)sect->sect_bytes;
             size[1]=sect->sect_size;
         }
         else if(strcmp(name,".strtab") == 0) {
-            sym_addr[2]=(uintptr_t)sect->sec_bytes;
+            sym_addr[2]=(uintptr_t)sect->sect_bytes;
             size[2]=sect->sect_size;
         }
         else if(strcmp(name,".dynstr") == 0) {
-            sym_addr[3]=(uintptr_t)sect->sec_bytes;
+            sym_addr[3]=(uintptr_t)sect->sect_bytes;
             size[3]=sect->sect_size;
         }
         sect=sect->sect_next;
@@ -168,7 +168,7 @@ static uintptr_t load_elf_section_shstrtab(Binary *elf,void *mem,uint64_t *sh_in
     shstrtab->sect_type=SECT_TYPE_DATA;
     /*  load section contents   */
     uint8_t *bytes=MALLOC(size,uint8_t);
-    shstrtab->sec_bytes=bytes;
+    shstrtab->sect_bytes=bytes;
     for(uint64_t offset=0;offset < size;offset++)
         bytes[offset]=*(uint8_t*)(sc_addr+offset);
     elf->sect->sect_next=shstrtab;
@@ -227,7 +227,7 @@ static void load_elf_sections(Binary *elf,void *mem,uint64_t *sh_info){
         /*  do not load .bss ,IT IS NOBITS  */
         if(strcmp(name,".bss") == 0) continue;
         uint8_t *bytes=MALLOC(size,uint8_t);
-        new->sec_bytes=bytes;
+        new->sect_bytes=bytes;
         for(uint64_t offset=0;offset < size;offset++)
             bytes[offset]=*(uint8_t*)(sc_addr+offset);
         sect->sect_next=new;
@@ -318,7 +318,7 @@ static void load_pe_sections(Binary *pe,uintptr_t *sh_info){
         /* do not load .bss ,IT IS NOBITS   */
         if(flags & IMAGE_SCN_CNT_UNINITIALIZED_DATA) continue;
         uint8_t *bytes=MALLOC(size,uint8_t);
-        new->sec_bytes=bytes;
+        new->sect_bytes=bytes;
         for(uint64_t offset=0;offset < size;offset++)
             bytes[offset]=*(uint8_t*)(sc_addr+offset);
         sect->sect_next=new;
@@ -354,6 +354,9 @@ static void load_info_arch(Binary *bin,uint64_t machine){
             break;
         case IMAGE_FILE_MACHINE_AMD64:
             bin->bin_arch=ARCH_X64;
+            break;
+        case IMAGE_FILE_MACHINE_ARM64:
+            bin->bin_arch=ARCH_ARM64;
             break;
         default:
             bin->bin_arch=ARCH_UNKNOWN;
@@ -427,6 +430,7 @@ static void load_info(Binary *bin,void *mem){
 
 Binary *load_binary(char *fn){
     /*  file init */
+    if(!fn) return NULL;
     int fd=open(fn,O_RDONLY);
     if(fd < 0) LDR_ERROR2(fn,"file is not exist or not readable");
     struct stat file_stat;
