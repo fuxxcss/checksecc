@@ -13,7 +13,6 @@ static void help(){
       --file={file}\n\
       --dir={directory}\n\
       --listfile={file list separated by |}\n\
-      --proc={process name}\n\
       --proc-all\n\
       --proc-id={process ID}\n\
       --kernel[=kconfig]\n\
@@ -42,10 +41,9 @@ static struct option long_options[]={
     {"file",required_argument,NULL,'0'},
     {"dir",required_argument,NULL,'1'},
     {"listfile",required_argument,NULL,'2'},
-    {"proc",required_argument,NULL,'3'},
-    {"proc-all",no_argument,NULL,'4'},
-    {"proc-id",required_argument,NULL,'5'},
-    {"kernel",optional_argument,NULL,'6'},
+    {"proc-all",no_argument,NULL,'3'},
+    {"proc-id",required_argument,NULL,'4'},
+    {"kernel",optional_argument,NULL,'5'},
     {"version",no_argument,NULL,'v'},
     {"help",no_argument,NULL,'h'},
     {"debug",no_argument,NULL,'d'},
@@ -101,19 +99,14 @@ static void parse_args(int *pargc,char ***pargv){
         case '3':
             func=CHK_PROC;
             arg=optarg;
-            chk_mode=cpo_name;
+            chk_mode=cpo_all;
             break;
         case '4':
             func=CHK_PROC;
             arg=optarg;
-            chk_mode=cpo_all;
-            break;
-        case '5':
-            func=CHK_PROC;
-            arg=optarg;
             chk_mode=cpo_id;
             break;
-        case '6':
+        case '5':
             func=CHK_KERNEL;
             arg=optarg;
             break;

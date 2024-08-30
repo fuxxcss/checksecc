@@ -524,7 +524,7 @@ chk_info *chk_elf_fortified(Binary *elf){
     return head;
 }
 
-void chk_file_one_elf(Binary *elf){
+chk_info *chk_file_one_elf(Binary *elf){
     /*  We have 8 basic check functions */
     char *(*chk_basic_func[CHK_BAS_NUM])(Binary*)={
         chk_elf_name,
@@ -576,27 +576,25 @@ void chk_file_one_elf(Binary *elf){
     }
     /*  tail    */
     elf_info->chk_next=NULL;
-    /*  output with format  */
-    format_output(head);
+    /*  chk_info head   */
+    return head;
 }
 
 void chk_file_one_pe(Binary *pe){
     return;
 }
 
-void chk_file_one(Binary *bin){
+chk_info *chk_file_one(Binary *bin){
     /*  elf or pe   */
     switch (bin->bin_type)
     {
     case BIN_TYPE_ELF32:
-        chk_file_one_elf(bin);
-        break;
+        return chk_file_one_elf(bin);
     case BIN_TYPE_ELF64:
-        chk_file_one_elf(bin);
-        break;
+        return chk_file_one_elf(bin);
     case BIN_TYPE_PE:
         chk_file_one_pe(bin);
-        break;
+        return NULL;
     }
 }
 
@@ -609,7 +607,10 @@ void chk_file(char *option,chk_file_option cfo){
         Binary *bin=load_binary(option);
         if(bin == NULL) return;
         /*  check one file  */
-        chk_file_one(bin);
+        chk_info *head;
+        head=chk_file_one(bin);
+        /*  output with format  */
+        format_output(head);
         break;
     case cfo_dir:
         /*  open dir*/

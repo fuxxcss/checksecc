@@ -17,6 +17,8 @@ output OUTPUT;
 #define CHK_SAN_NUM 7
 /*  ibt and shadow-stack    */
 #define CHK_CET_NUM 2
+/*  proc check functions    */
+#define CHK_PROC_NUM 1
 /*  libc path ,up to bin_arch  */
 #define CHK_LIBC_PATH_NUM 3
 /*  hashmap size    */
@@ -37,7 +39,6 @@ typedef enum {
 
 /*  cpo enum    */
 typedef enum {
-    cpo_name,
     cpo_all,
     cpo_id,
 }chk_proc_option;

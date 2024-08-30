@@ -5,10 +5,12 @@
 /*  expection handle    */
 #define CHK_ERROR1(info) {\
     printf("CHK ERROR:%s\n",info); \
+    return;
 }
 
 #define CHK_ERROR2(info1,info2) {\
     printf("CHK ERROR:%s, %s\n",info1,info2); \
+    return;
 }
 
 #define CHK_ERROR3(info) {\
@@ -19,6 +21,10 @@
 #define CHK_ERROR4(info) {\
     printf("CHK ERROR:%s\n",info); \
     return NULL;\
+}
+
+#define CHK_PRINT(info1,info2) {\
+    printf("%s %s\n",info1,info2); \
 }
 
 /*  check files func    */
