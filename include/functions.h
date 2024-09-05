@@ -23,9 +23,25 @@
     return NULL;\
 }
 
-#define CHK_PRINT(info1,info2) {\
-    printf("%s %s\n",info1,info2); \
-}
+#define CHK_PRINT1(info) printf("%s\n",info); 
+
+#define CHK_PRINT2(info1,info2) printf("%s %s\n",info1,info2); 
+
+
+/*  get file size,return unsigned int   */
+#define FILE_SIZE(fp) ({\
+    fseek(fp,0,SEEK_END);\
+    unsigned int size=ftell(fp);\
+    fseek(fp,0,SEEK_SET);\
+    size;\
+})
+
+#define gzFILE_SIZE(gzfp) ({\
+    gzseek(gzfp,0,SEEK_END);\
+    unsigned int size=gztell(gzfp);\
+    gzseek(gzfp,0,SEEK_SET);\
+    size;\
+})
 
 /*  check files func    */
 void chk_file(char *option,chk_file_option cfo);

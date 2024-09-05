@@ -18,7 +18,9 @@ output OUTPUT;
 /*  ibt and shadow-stack    */
 #define CHK_CET_NUM 2
 /*  proc check functions    */
-#define CHK_PROC_NUM 1
+#define CHK_PROC_NUM 2
+/*  kernel check functions    */
+#define CHK_KERN_NUM 9
 /*  libc path ,up to bin_arch  */
 #define CHK_LIBC_PATH_NUM 3
 /*  hashmap size    */

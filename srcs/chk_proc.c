@@ -2,41 +2,56 @@
 #include<unistd.h>
 #include<string.h>
 #include<dirent.h>
+#include<errno.h>
 #include"functions.h"
 #include"types.h"
 #include"loader.h"
 
 // TODO multi-thread check procs
 
-// check for Seccomp mode
+// check Seccomp mode
 char *chk_linux_proc_seccomp(char *path){
     char *status=str_append(path,"/status");
-    int fd;
-    fd=open(status,"r");
-    if(fd < 0) CHK_ERROR4("open /proc/pid/status failed");
-    char seccomp[512];
-    if(read(fd,seccomp,512) < 0) CHK_ERROR4("read /proc/pid/status failed");
+    FILE *fp;
+    fp=fopen(status,"r");
+    if(fp == NULL) CHK_ERROR4("open /proc/pid/status failed");
+    unsigned int size=FILE_SIZE(fp);
+    char *seccomp=MALLOC(size,char);
+    if(fread(seccomp,sizeof(char),size,fp) < 0) CHK_ERROR4("read /proc/pid/status failed");
     char *location=strstr(seccomp,"Seccomp:");
     if(location == NULL) CHK_ERROR4("Seccomp flag not found");
     // Seccomp:	x , flag=x
     unsigned int offset=10;
     char flag=*(location+offset);
+    // collect resource
+    fclose(fp);
+    free(seccomp);
     if(flag == '0') return "\033[31mNo Seccomp\033[m";
     else if(flag == '1') return "\033[32mSeccomp strict\033[m";
     else if(flag =='2') return "\033[32mSeccomp-bpf\033[m";
     else CHK_ERROR4("Unknown Seccomp LEVEL");
-    close(fd);
+}
+
+// check Selinux mode
+char *chk_linux_proc_selinux(char *){
+    char *config="/etc/selinux/config";
+    FILE *fp;
+    fp=fopen(config,"r");
+    if(fp == NULL) {
+        if(errno == ENOENT) return "\033[31mNo Selinux\033[m";
+        else CHK_ERROR4("open /etc/selinux/config failed");
+    }
+    unsigned int size=FILE_SIZE(fp);
+    char *selinux=MALLOC(size,char);
+    if(fread(selinux,sizeof(char),size,fp) < 0) CHK_ERROR4("read /etc/selinux/config failed");
+    if(strstr(selinux,"SELINUX=enforcing")) return "\033[32mEnforcing\033[m";
+    else if(strstr(selinux,"SELINUX=permissive")) return "\033[32mPermissive\033[m";
+    else if(strstr(selinux,"SELINUX=disabled")) return "\033[31mDisabled\033[m";
+    else CHK_ERROR4("Unknown Selinux LEVEL");
 }
 
 // only linux now
 void chk_linux_proc(char *path,char *pid,char *exe){
-    // chk aslr and cpu nx first
-    char *aslr=chk_kernel_aslr();
-    if(aslr == NULL) CHK_ERROR2(exe,"Check ASLR failed");
-    CHK_PRINT("PIE depends on ASLR: ",aslr);
-    char *nx=chk_kernel_nx();
-    if(nx == NULL) CHK_ERROR2(exe,"Check CPU NX failed");
-    CHK_PRINT("NX depends on CPU NX flag: ",nx);
     // chk_info
     chk_info *head;
     // chk this exe file
@@ -44,9 +59,11 @@ void chk_linux_proc(char *path,char *pid,char *exe){
     // chk proc feature
     char *(*chk_proc_func[CHK_PROC_NUM])(char *)={
         chk_linux_proc_seccomp,
+        chk_linux_proc_selinux
     };
     char *chk_proc_array[CHK_PROC_NUM]={
         "SECCOMP",
+        "Selinux"
     };
     for(int num=0;num < CHK_PROC_NUM;num++){
         chk_info *new=MALLOC(1,chk_info);

@@ -100,8 +100,14 @@ char *chk_elf_stack_canary(Binary *elf){
     else return "\033[31mNo Canary found\033[m";
 }
 
-/*  check nx    */
+/*  
+ *  check nx    
+ *  NX depends on CPU NX flag
+ */
 char *chk_elf_nx(Binary *elf){
+    // check cpu nx first
+    bool nx=chk_cpu_nx();
+    if(!nx) CHK_ERROR4("CPU not support nx or Check CPU NX failed");
     bool stack=false;
     bool rwe=false;
     /*  search program header   */
@@ -123,8 +129,15 @@ char *chk_elf_nx(Binary *elf){
     else return "\033[31mNX disabled\033[m";
 }
 
-/*  check pie   */
+/*
+ * check pie   
+ * PIE depends on ASLR
+ */
 char *chk_elf_pie(Binary *elf){
+    // check aslr first
+    char *aslr=chk_kernel_aslr_flag();
+    if(aslr == 0) CHK_ERROR4("Check ASLR failed");
+    if(aslr == 1) return "\033[31mASLR LEVEL 0\033[m";
     uint32_t type;
     switch(elf->bin_type){
         case BIN_TYPE_ELF32:
@@ -273,7 +286,9 @@ char *chk_elf_stripped(Binary *elf){
     else return "\033[32mNot Stripped\033[m";
 }
 
-/*  check sanitized */
+/*  
+    check sanitized gcc/llvm
+*/
 chk_info *chk_elf_sanitized(Binary *elf){
     /*  
         CHK_SAN_NUM 7
