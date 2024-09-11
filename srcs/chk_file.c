@@ -9,6 +9,9 @@
 #include"types.h"
 #include"loader.h"
 
+/*  global flag */
+extern bool EXTENTED;
+
 /*  append string [des src]*/
 char *str_append(char *des,char *src){
     if(!des || !src) return NULL;
@@ -135,7 +138,7 @@ char *chk_elf_nx(Binary *elf){
  */
 char *chk_elf_pie(Binary *elf){
     // check aslr first
-    char *aslr=chk_kernel_aslr_flag();
+    unsigned int aslr=chk_user_aslr_flag();
     if(aslr == 0) CHK_ERROR4("Check ASLR failed");
     if(aslr == 1) return "\033[31mASLR LEVEL 0\033[m";
     uint32_t type;
@@ -347,9 +350,10 @@ chk_info *chk_elf_sanitized(Binary *elf){
     /*  
         check shadow call stack
         now only for aarch64
+        so false
     */
-    bool cet_bool[1]=false;
-    /*  return chk_info */
+   cet_bool[1]=false;
+   /*   return chk_info */
     char *type="Sanitized";
     chk_info *info=MALLOC(1,chk_info);
     /*  head    */
@@ -620,12 +624,14 @@ void chk_file(char *option,chk_file_option cfo){
     case cfo_file:
         /*  load file  */
         Binary *bin=load_binary(option);
-        if(bin == NULL) return;
+        if(bin == NULL) CHK_ERROR1("load file failed");
         /*  check one file  */
         chk_info *head;
         head=chk_file_one(bin);
         /*  output with format  */
         format_output(head);
+        /*  free load   */
+        free_binary(bin);
         break;
     case cfo_dir:
         /*  open dir*/
@@ -640,10 +646,10 @@ void chk_file(char *option,chk_file_option cfo){
         break;
     case cfo_listfile:
         /*  check file list */
-        char *file=strtok(option,"|");
-        while(file !=NULL){
-            chk_file(file,cfo_file);
-            file=strtok(option,"|");
+        char *path=strtok(option,"|");
+        while(path !=NULL){
+            chk_file(path,cfo_file);
+            path=strtok(path,"|");
         }
         break;
     }

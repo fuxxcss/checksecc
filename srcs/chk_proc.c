@@ -52,10 +52,13 @@ char *chk_linux_proc_selinux(char *){
 
 // only linux now
 void chk_linux_proc(char *path,char *pid,char *exe){
+    // load file
+    Binary *bin=load_binary(exe);
+    if(bin == NULL) CHK_ERROR1("load file failed");
     // chk_info
     chk_info *head;
     // chk this exe file
-    head=chk_file_one_elf(exe,cfo_file);
+    head=chk_file_one_elf(bin);
     // chk proc feature
     char *(*chk_proc_func[CHK_PROC_NUM])(char *)={
         chk_linux_proc_seccomp,
@@ -84,6 +87,8 @@ void chk_linux_proc(char *path,char *pid,char *exe){
     head->chk_next=new;
     //format output
     format_output(head);
+    // free load
+    free_binary(bin);
 }
 
 void chk_proc(char *option,chk_proc_option cpo){

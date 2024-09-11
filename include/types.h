@@ -1,12 +1,6 @@
 #ifndef _TYPES_H_
 #define _TYPES_H_
 
-/*  global flag   */
-bool DEBUG;
-bool VERBOSE;
-bool EXTENTED;
-output OUTPUT;
-
 /*  macro constant  */
 
 /*  basic check functions   */
@@ -45,6 +39,12 @@ typedef enum {
     cpo_id,
 }chk_proc_option;
 
+/*  cro enum    */
+typedef enum{
+    cro_open,
+    cro_reverse,
+}chk_remote_option;
+
 /*  output format enum  */
 typedef enum{
     cli,
@@ -58,7 +58,8 @@ typedef enum{
     CHK_UNKNOWN,
     CHK_FILE,
     CHK_PROC,
-    CHK_KERNEL
+    CHK_KERNEL,
+    CHK_REMOTE,
 }chk_func;
 
 /*  chk information struct  */
@@ -67,6 +68,5 @@ typedef struct chk_info{
     char *chk_result;
     struct chk_info *chk_next;
 }chk_info;
-
 
 #endif

@@ -15,6 +15,11 @@
     return NULL;\
 }
 
+#define LDR_ERROR3(info1,info2) {\
+    printf("LDR ERROR:%s %s\n",info1,info2); \
+    return;\
+}
+
 /*  easy malloc */
 #define MALLOC(num,type) (type*)malloc(num*sizeof(type))
 
@@ -124,6 +129,8 @@ typedef struct Header{
 }Header;
 
 typedef struct Binary{
+    /*  mmap address    */
+    void *mem;
    /* file format */
     bin_type bin_type;
     /*   arch  */
@@ -146,11 +153,11 @@ typedef struct Binary{
 Binary *load_binary(char *fn);
 
 /*  load symbols, sections  */
-static void load_symbols(Binary *bin,void *mem);
-static void load_info(Binary *bin,void *mem);
-static void load_sections(Binary *bin,void *mem,uint64_t *sh_info);
-static void load_programhs(Binary *bin,void *mem);
-static void load_programhs(Binary *bin,void *mem);
+void load_symbols(Binary *bin,void *mem);
+void load_info(Binary *bin,void *mem);
+void load_sections(Binary *bin,void *mem,uint64_t *sh_info);
+void load_programhs(Binary *bin,void *mem);
+void load_programhs(Binary *bin,void *mem);
 
 /*  show all info   */
 void show_symbols(Binary *bin);

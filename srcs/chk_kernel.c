@@ -46,10 +46,15 @@ bool chk_cpu_nx(){
     //read /proc/cpuinfo
     FILE *fp;
     fp=fopen("/proc/cpuinfo","r");
-    if(fp == NULL) CHK_ERROR4("open cpuinfo failed");
+    if(fp == NULL) CHK_ERROR3("open cpuinfo failed");
+    // size = 0 
     unsigned int size=FILE_SIZE(fp);
-    char *cpuinfo=MALLOC(size,char);
-    if(fread(cpuinfo,sizeof(char),size,fp) < 0) CHK_ERROR4("read cpuinfo failed");
+    printf("%d\n",size);
+    // need to add '\0'
+    char *cpuinfo=MALLOC(size+1,char);
+    if(fread(cpuinfo,sizeof(char),size,fp) < 0) CHK_ERROR3("read cpuinfo failed");
+    cpuinfo[size]='\0';
+    CHK_PRINT1(cpuinfo);
     close(fp);
     char *str=strstr(cpuinfo," nx ");
     free(cpuinfo);
@@ -182,8 +187,9 @@ char *chk_kernel_config(char *option){
 
 // https://www.kernel.org/doc/html/latest/security/self-protection.html
 // https://www.kernelconfig.io/*
-void chk_kernel(char *option){
-    char *kernelinfo=chk_kernel_config(option);
+void chk_kernel(char *kernelinfo,char *option){
+    if(kernelinfo == NULL)
+        kernelinfo=chk_kernel_config(option);
     // chk kernel feature
     char *(*chk_kernel_func[CHK_KERN_NUM])(char *)={
         chk_user_aslr,
@@ -226,6 +232,8 @@ void chk_kernel(char *option){
         kernel_info->chk_next=NULL;
         /*  format output   */
         format_output(head);
+        /*  free kernelinfo */
+        free(kernelinfo);
     }
     else CHK_ERROR1("Check Kernel failed");
 }

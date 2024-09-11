@@ -9,20 +9,19 @@
 static void help(){
     printf("Usage: checkc [--format={cli,csv,xml,json}] [OPTION]\n\n\
       Options:\n\
-      ## Checksec Options\n\
+      ## Checksecc Options\n\
       --file={file}\n\
       --dir={directory}\n\
       --listfile={file list separated by |}\n\
       --proc-all\n\
       --proc-id={process ID}\n\
       --kernel[=kconfig]\n\
+      --remote={ip:port}\n\
+      --remote-rev={port}\n\
       --version\n\
       --help\n\n\
      ## Modifiers\n\
-      --debug\n\
-      --verbose\n\
       --format={cli,csv,xml,json}\n\
-      --output={cli,csv,xml,json}\n\
       --extended\n\n\
 For more information, see:\n\
 https://github.com/fuxxcss/checksecc\n\n");
@@ -44,12 +43,11 @@ static struct option long_options[]={
     {"proc-all",no_argument,NULL,'3'},
     {"proc-id",required_argument,NULL,'4'},
     {"kernel",optional_argument,NULL,'5'},
+    {"remote",required_argument,NULL,'6'},
+    {"remote-rev",required_argument,NULL,'7'},
     {"version",no_argument,NULL,'v'},
     {"help",no_argument,NULL,'h'},
-    {"debug",no_argument,NULL,'d'},
-    {"verbose",no_argument,NULL,'r'},
     {"format",required_argument,NULL,'f'},
-    {"output",required_argument,NULL,'f'},
     {"extended",no_argument,NULL,'e'}
 };
 
@@ -57,12 +55,12 @@ static struct option long_options[]={
 static chk_func func=CHK_UNKNOWN;
 static char *arg;
 static uint8_t chk_mode;
+extern bool EXTENTED;
+extern output OUTPUT;
 
 /*  parse args  */
 static void parse_args(int *pargc,char ***pargv){
     /*  default global flag */
-    DEBUG=false;
-    VERBOSE=false;
     EXTENTED=false;
     OUTPUT=cli;
     /*  help page   */
@@ -110,11 +108,15 @@ static void parse_args(int *pargc,char ***pargv){
             func=CHK_KERNEL;
             arg=optarg;
             break;
-        case 'd':
-            DEBUG=true;
+        case '6':
+            func=CHK_REMOTE;
+            arg=optarg;
+            chk_mode=cro_open;
             break;
-        case 'r':
-            VERBOSE=true;
+        case '7':
+            func=CHK_REMOTE;
+            arg=optarg;
+            chk_mode=cro_reverse;
             break;
         case 'f':
             OUTPUT=set_format(optarg);
@@ -140,7 +142,10 @@ int main(int argc,char **argv){
         chk_proc(arg,chk_mode);
         break;
     case CHK_KERNEL:
-        chk_kernel(arg);
+        chk_kernel(NULL,arg);
+        break;
+    case CHK_REMOTE:
+        chk_remote(arg,chk_mode);
         break;
     case CHK_UNKNOWN:
         printf("\033[31mError:Unknown check function.\033[m\n\n");

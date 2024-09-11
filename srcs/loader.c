@@ -7,7 +7,7 @@
 #include<fcntl.h>
 #include"loader.h"
 
-static ph_type load_elf_programh_types(uint64_t flags){
+ph_type load_elf_programh_types(uint64_t flags){
     switch (flags){
         case PT_LOAD:
             return PH_LOAD;
@@ -23,7 +23,7 @@ static ph_type load_elf_programh_types(uint64_t flags){
             return PH_UNKNOWN;
     }
 }
-static void load_elf_programhs(Binary *elf,void *mem,uint64_t *ph_info){
+void load_elf_programhs(Binary *elf,void *mem,uint64_t *ph_info){
     /*  program headers addr    */
     uintptr_t ph_addr=(uintptr_t)mem+ph_info[0];
     /*  head    */
@@ -58,7 +58,7 @@ static void load_elf_programhs(Binary *elf,void *mem,uint64_t *ph_info){
     ph->ph_next=NULL;
 }
 
-static void load_elf_symbol_funcs(Binary *elf,uintptr_t sym_addr,uint64_t upper,uint64_t str_addr,sym_type type){
+void load_elf_symbol_funcs(Binary *elf,uintptr_t sym_addr,uint64_t upper,uint64_t str_addr,sym_type type){
     switch (elf->bin_type)
     {
     case BIN_TYPE_ELF32:
@@ -96,7 +96,7 @@ static void load_elf_symbol_funcs(Binary *elf,uintptr_t sym_addr,uint64_t upper,
     }
 }
 
-static void load_elf_symbols(Binary *elf){
+void load_elf_symbols(Binary *elf){
     /*  load function symbols   */
     Section *sect=elf->sect;
     sect=sect->sect_next;
@@ -137,7 +137,7 @@ static void load_elf_symbols(Binary *elf){
     else load_elf_symbol_funcs(elf,sym_addr[1],size[1],sym_addr[3],SYM_TYPE_DYN_FUNC); 
 }
 
-static uintptr_t load_elf_section_shstrtab(Binary *elf,void *mem,uint64_t *sh_info){
+uintptr_t load_elf_section_shstrtab(Binary *elf,void *mem,uint64_t *sh_info){
     char *name=".shstrtab";
     uint64_t size,flags;
     /*  section contents addr and section vma*/
@@ -175,7 +175,7 @@ static uintptr_t load_elf_section_shstrtab(Binary *elf,void *mem,uint64_t *sh_in
     return sc_addr;
 }
 
-static void load_elf_sections(Binary *elf,void *mem,uint64_t *sh_info){
+void load_elf_sections(Binary *elf,void *mem,uint64_t *sh_info){
     char *name;
     uint64_t size,flags;
     /*  section contents addr and section vma*/
@@ -237,7 +237,7 @@ static void load_elf_sections(Binary *elf,void *mem,uint64_t *sh_info){
     sect->sect_next=NULL;
 }
 
-static void load_elf(Binary *elf,void *mem){
+void load_elf(Binary *elf,void *mem){
     /*  load sections   */
     /*  section headers */
     /*  uint64_t [shtb_addr,sh_num,sh_size,shstr_offset] */
@@ -280,7 +280,7 @@ static void load_elf(Binary *elf,void *mem){
     load_elf_symbols(elf);
 }
 
-static void load_pe_symbols(Binary *pe,uintptr_t addr){
+void load_pe_symbols(Binary *pe,uintptr_t addr){
     Symbol *sym=MALLOC(1,Symbol);
     /*  tail insert */
     /*  head    */
@@ -289,7 +289,7 @@ static void load_pe_symbols(Binary *pe,uintptr_t addr){
     sym->sym_next=NULL;
 }
 
-static void load_pe_sections(Binary *pe,uintptr_t *sh_info){
+void load_pe_sections(Binary *pe,uintptr_t *sh_info){
     char *name;
     uint64_t size,flags;
     uintptr_t vma,sc_addr;
@@ -328,7 +328,7 @@ static void load_pe_sections(Binary *pe,uintptr_t *sh_info){
     sect->sect_next=NULL;
 }
 
-static void load_pe(Binary *pe,void *mem){
+void load_pe(Binary *pe,void *mem){
     /*  load sections   */
     /*  sh_info [mem,sh_addr,sh_num]   */
     uintptr_t sh_info[3];
@@ -345,7 +345,7 @@ static void load_pe(Binary *pe,void *mem){
     load_pe_symbols(pe,mem);
 }
 
-static void load_info_arch(Binary *bin,uint64_t machine){
+void load_info_arch(Binary *bin,uint64_t machine){
     if(bin->bin_type == BIN_TYPE_PE)
         switch(machine)
         {
@@ -375,7 +375,7 @@ static void load_info_arch(Binary *bin,uint64_t machine){
         }
 }
 
-static void load_info(Binary *bin,void *mem){
+void load_info(Binary *bin,void *mem){
     /*  explicit type conversion */
     uint16_t *mz=(uint16_t*)mem;
     uint32_t *elf=(uint32_t*)mem;
@@ -445,6 +445,7 @@ Binary *load_binary(char *fn){
     if(file_mem == MAP_FAILED) LDR_ERROR2(fn,"mmap failed.");
     /*  Binary init */
     Binary *bin=MALLOC(1,Binary);
+    bin->mem=file_mem;
     bin->bin_size=file_size;
     bin->bin_name=file_name;
     load_info(bin,file_mem);
@@ -469,6 +470,11 @@ Binary *load_binary(char *fn){
     if(bin->sym->sym_next == NULL) LDR_ERROR1(fn,"load symbols failed.");
     if(bin->hd == NULL) LDR_ERROR1(fn,"load headers failed.");
     return bin;
+}
+
+void free_binary(Binary *bin){
+    munmap(bin->mem,bin->bin_size);
+    free(bin);
 }
 
 void show_symbols(Binary *bin){

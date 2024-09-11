@@ -1,11 +1,11 @@
-/*  utils.c covers
-    set_format
-    format_output
-    */
 #include<string.h>
 #include<stdio.h>
 #include"functions.h"
 #include"types.h"
+
+/*  global flag   */
+bool EXTENTED;
+output OUTPUT;
 
 output set_format(char *option){
     if(strcmp(option,"cli") ==0) return cli;
