@@ -12,7 +12,7 @@ static void help(){
       ## Checksecc Options\n\
       --file={file}\n\
       --dir={directory}\n\
-      --listfile={file list separated by |}\n\
+      --listfile={file list separated by *}\n\
       --proc-all\n\
       --proc-id={process ID}\n\
       --kernel[=kconfig]\n\

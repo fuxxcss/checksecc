@@ -1,6 +1,6 @@
 # checksecc
 ## introduction
-The checksecc is a c rewrite of checksec but has some highlights. It retains all the core functionality of checksec,you can operate on it just like the original.
+The checksecc is a c rewrite of checksec and has some highlights. It retains all the core functionality of checksec,you can operate on it just like the original.
 ``` shell
 > checkc --help or just checkc
 Usage: checkc [--format={cli,csv,xml,json}] [OPTION]
@@ -9,7 +9,7 @@ Usage: checkc [--format={cli,csv,xml,json}] [OPTION]
       ## Checksecc Options
       --file={file}
       --dir={directory}
-      --listfile={file list separated by |}
+      --listfile={file list separated by *}
       --proc-all
       --proc-id={process ID}
       --kernel[=kconfig]
