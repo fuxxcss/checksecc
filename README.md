@@ -1,15 +1,113 @@
 # checksecc
-Not just a c rewrite.
 ## introduction
 The checksecc is a c rewrite of checksec but has some highlights. It retains all the core functionality of checksec,you can operate on it just like the original.
+``` shell
+> checkc --help or just checkc
+Usage: checkc [--format={cli,csv,xml,json}] [OPTION]
+
+      Options:
+      ## Checksecc Options
+      --file={file}
+      --dir={directory}
+      --listfile={file list separated by |}
+      --proc-all
+      --proc-id={process ID}
+      --kernel[=kconfig]
+      --remote={ip:port}
+      --remote-rev={port}
+      --version
+      --help
+
+     ## Modifiers
+      --format={cli,csv,xml,json}
+      --extended
+
+For more information, see:
+https://github.com/fuxxcss/checksecc
+
+```
+## check one elf file
+For example , we compile one file with -fsanitize.
+``` shell
+> clang -fsanitize=address test.c -o test
+```
+And then use checkc to check this file with extended features.
+``` shell
+> checkc --file=./test --extended
+File                        ./test
+RELRO                       Partial RELRO
+STACK CANARY                No Canary found
+NX                          NX enabled
+PIE                         PIE enabled
+RPATH                       NO RPATH
+RUNPATH                     NO RUNPATH
+Stripped                    Not Stripped
+Sanitized asan              Yes
+Sanitized tsan              NO
+Sanitized msan              NO
+Sanitized lsan              Yes
+Sanitized ubsan             Yes
+Sanitized dfsan             NO
+Sanitized safestack         NO
+Sanitized cet-ibt           NO
+Sanitized cet-shadow-stack  NO
+Fortified                   FORTIFY SOURCE support available (/lib/x86_64-linux-gnu/libc.so.6) : Yes
+Fortified                   Binary compiled with FORTIFY SOURCE support (./test) : Yes
+Fortified                   __sprintf_chk Fortified
+Fortified                   __longjmp_chk Fortified
+Fortified                   __fprintf_chk Fortified
+Fortified                   __vsprintf_chk Fortified
+Fortified                   __snprintf_chk Fortified
+Fortified                   __vsnprintf_chk Fortified
+```
+## check the kernel
+For example , we check Linux debian 5.10.0-20-amd64.
+``` shell
+> checkc --kernel
+Kconfig                     /boot/config-5.10.0-20-amd64
+User ASLR                   LEVEL 2
+Kernel ASLR                 Enabled
+Kernel NX                   Enabled
+Kernel Stack Canary         Strong
+Kernel Stack Poison         Disabled
+Slab Freelist Hardened      Enabled
+Slab Freelist Random        Enabled
+SMAP                        Enabled
+PTI                         Enabled
+```
+## check one process
+we focus on selinux and seccomp.
+``` shell
+> ps -aux | grep 1592
+root        1592  0.0  0.1 320324  8788 ?        Ssl  13:43   0:00 /usr/libexec/upowerd
+> checkc --proc-id=1592
+PID                         1592
+Selinux                     No Selinux
+SECCOMP                     Seccomp-bpf
+File                        /usr/libexec/upowerd
+RELRO                       Partial RELRO
+STACK CANARY                Canary found
+NX                          NX enabled
+PIE                         PIE enabled
+RPATH                       NO RPATH
+RUNPATH                     NO RUNPATH
+Stripped                    Stripped
+```
+## version information
+``` shell
+> checkc --version
+checksecc v0.1,fuxxcss
+https://github.com/fuxxcss/checksecc
+
+```
 ## highlights
 remote check:<br>
-You can compile it on modern operating systems such as linux or win, and then check the remote linux host to facilitate further information gathering on a reverse ssl connect.<br>
+(ToDo)You can compile it on modern operating systems such as linux or win, and then check the remote linux host to facilitate further information gathering on a reverse ssl connect.<br>
 C/C++ API:<br>
 The checksecc provides a library and documentation to help you to do more flexible operation with this api.
-## todo
+## ToDo
 We expect more modern operating systems to be included.
 ## Something
 we removed some uncommon features and added some useful features.
 
-char *command="for N in [1-9]*; do if [[ "${N}" != "$$" ]] && readlink -q /proc/"${N}"/exe > /dev/null; then echo $N; fi done";
+

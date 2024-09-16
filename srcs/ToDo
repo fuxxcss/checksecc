@@ -1,0 +1,1 @@
+char *command="for N in [1-9]*; do if [[ "${N}" != "$$" ]] && readlink -q /proc/"${N}"/exe > /dev/null; then echo $N; fi done";
