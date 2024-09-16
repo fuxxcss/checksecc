@@ -26,6 +26,15 @@ For more information, see:
 https://github.com/fuxxcss/checksecc
 
 ```
+## install 
+``` shell
+cd srcs
+make && make install
+```
+if you need to update , make clean first
+``` shell
+make clean
+```
 ## check one elf file
 For example , we compile one file with -fsanitize.
 ``` shell
