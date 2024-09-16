@@ -60,6 +60,28 @@ Fortified                   __vsprintf_chk Fortified
 Fortified                   __snprintf_chk Fortified
 Fortified                   __vsnprintf_chk Fortified
 ```
+## check file list
+We need delim * to check file list
+``` shell
+> checkc --listfile=test*test1*
+File                        test
+RELRO                       Partial RELRO
+STACK CANARY                No Canary found
+NX                          NX enabled
+PIE                         PIE enabled
+RPATH                       NO RPATH
+RUNPATH                     NO RUNPATH
+Stripped                    Not Stripped
+
+File                        test1
+RELRO                       Partial RELRO
+STACK CANARY                No Canary found
+NX                          NX enabled
+PIE                         PIE enabled
+RPATH                       NO RPATH
+RUNPATH                     NO RUNPATH
+Stripped                    Stripped
+```
 ## check the kernel
 For example , we check Linux debian 5.10.0-20-amd64.
 ``` shell

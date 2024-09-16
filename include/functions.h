@@ -28,6 +28,8 @@
 
 #define CHK_PRINT2(info1,info2) printf("%s %s\n",info1,info2); 
 
+#define CHK_PRINT3() printf("\n");
+
 
 /*  get file size,return unsigned int   */
 #define FILE_SIZE(fp) ({\

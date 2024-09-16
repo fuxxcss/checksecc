@@ -654,10 +654,12 @@ void chk_file(char *option,chk_file_option cfo){
         break;
     case cfo_listfile:
         /*  check file list */
-        char *path=strtok(option,"|");
+        char *token="*";
+        char *path=strtok(option,token);
         while(path !=NULL){
             chk_file(path,cfo_file);
-            path=strtok(path,"|");
+            CHK_PRINT3();
+            path=strtok(NULL,token);
         }
         break;
     }
