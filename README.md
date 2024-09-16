@@ -36,7 +36,23 @@ if you need to update , make clean first
 make clean
 ```
 ## check one elf file
-For example , we compile one file with -fsanitize.
+For example , we compile one file with gcc features.
+``` shell
+> gcc -z now -fstack-protector-all test.c -o test
+```
+And then use checkc to check this file.
+``` shell
+> checkc --file=./test
+File                        ./test
+RELRO                       Full RELRO
+STACK CANARY                Canary found
+NX                          NX enabled
+PIE                         PIE enabled
+RPATH                       NO RPATH
+RUNPATH                     NO RUNPATH
+Stripped                    Not Stripped
+```
+For example , we compile one file with clang features.
 ``` shell
 > clang -fsanitize=address test.c -o test
 ```
@@ -45,7 +61,7 @@ And then use checkc to check this file with extended features.
 > checkc --file=./test --extended
 File                        ./test
 RELRO                       Partial RELRO
-STACK CANARY                No Canary found
+STACK CANARY                Canary found
 NX                          NX enabled
 PIE                         PIE enabled
 RPATH                       NO RPATH
@@ -74,7 +90,7 @@ We need delim * to check file list
 ``` shell
 > checkc --listfile=test*test1*
 File                        test
-RELRO                       Partial RELRO
+RELRO                       Full RELRO
 STACK CANARY                No Canary found
 NX                          NX enabled
 PIE                         PIE enabled
@@ -116,7 +132,7 @@ PID                         1592
 Selinux                     No Selinux
 SECCOMP                     Seccomp-bpf
 File                        /usr/libexec/upowerd
-RELRO                       Partial RELRO
+RELRO                       Full RELRO
 STACK CANARY                Canary found
 NX                          NX enabled
 PIE                         PIE enabled

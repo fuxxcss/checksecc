@@ -52,7 +52,7 @@ char *chk_elf_relro(Binary *elf){
                 /*  d_tag == DT_FLAGS   */
                 if(dyn32->d_tag == DT_FLAGS)
                     /*  d_val == DT_BIND_NOW    */
-                    if(dyn32->d_un.d_val == DT_BIND_NOW)
+                    if(dyn32->d_un.d_val == DF_BIND_NOW)
                         full=true;
             }
             break;
@@ -64,7 +64,7 @@ char *chk_elf_relro(Binary *elf){
                 /*  d_tag == DT_FLAGS   */
                 if(dyn64->d_tag == DT_FLAGS)
                     /*  d_val == DT_BIND_NOW    */
-                    if(dyn64->d_un.d_val == DT_BIND_NOW)
+                    if(dyn64->d_un.d_val == DF_BIND_NOW)
                         full=true;
             }
     }
