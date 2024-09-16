@@ -93,7 +93,7 @@ typedef struct Symbol{
 
 typedef struct Section{
     sect_type sect_type;
-    const char* sect_name;
+    const char *sect_name;
     uintptr_t sect_vma;
     uint64_t sect_size;
     /*  contents    */

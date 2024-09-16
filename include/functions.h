@@ -1,6 +1,7 @@
 #ifndef _FUNC_H_
 #define _FUNC_H_
 #include"types.h"
+#include"loader.h"
 
 /*  expection handle    */
 #define CHK_ERROR1(info) {\
@@ -45,6 +46,7 @@
 
 /*  check files func    */
 void chk_file(char *option,chk_file_option cfo);
+chk_info *chk_file_one_elf(Binary *elf);
 
 /*  check process func  */
 void chk_proc(char *option,chk_proc_option cpo);
@@ -58,5 +60,7 @@ output set_format(char *option);
 /*  format output   */
 void format_output(chk_info *info);
 
+/*  str append  */
+char *str_append(char *des,char *src);
 
 #endif

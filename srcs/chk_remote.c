@@ -164,8 +164,7 @@ void chk_remote_proc(SSL *ssl){
         //format output
         format_output(head);
         // free load
-        free(file_mem);
-        free(bin);
+        free_binary(bin);
     }
 }
 

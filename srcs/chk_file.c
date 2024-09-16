@@ -12,20 +12,6 @@
 /*  global flag */
 extern bool EXTENTED;
 
-/*  append string [des src]*/
-char *str_append(char *des,char *src){
-    if(!des || !src) return NULL;
-    size_t des_size=strlen(des);
-    size_t src_size=strlen(src);
-    size_t append_size=des_size+src_size;
-    /*  one for \0  */
-    char *append=MALLOC(++append_size,char);
-    for(int i=0;i<des_size;i++) append[i]=des[i];
-    for(int i=des_size;i<append_size;i++) append[i]=src[i];
-    append[append_size]='\0';
-    return append;
-}
-
 /*  elf name    */
 char *chk_elf_name(Binary *elf){
     return elf->bin_name;
@@ -39,7 +25,10 @@ char *chk_elf_relro(Binary *elf){
     Programh *ph=elf->hd->Pxheader.ph->ph_next;
     while(ph){
         /*  segment type == GNU_RELRO*/
-        if(ph->sgm_type == PH_GNU_RELRO) relro=true;
+        if(ph->sgm_type == PH_GNU_RELRO){
+            relro=true;
+            break;
+        }
         ph=ph->ph_next;
     }
     /*  search dynamic section  */
@@ -112,7 +101,7 @@ char *chk_elf_nx(Binary *elf){
     bool nx=chk_cpu_nx();
     if(!nx) CHK_ERROR4("CPU not support nx or Check CPU NX failed");
     bool stack=false;
-    bool rwe=false;
+    bool rwx=false;
     /*  search program header   */
     Programh *gnu_stack=NULL;
     Programh *ph=elf->hd->Pxheader.ph->ph_next;
@@ -125,10 +114,10 @@ char *chk_elf_nx(Binary *elf){
         }
         ph=ph->ph_next;
     }
-    /*  segment flag == RWE*/
+    /*  segment flag == RWE */
     if(gnu_stack && (gnu_stack->sgm_flag & PF_X & PF_W & PF_R))
-        rwe=true;
-    if(stack && !rwe) return "\033[32mNX enabled\033[m";
+        rwx=true;
+    if(stack && !rwx) return "\033[32mNX enabled\033[m";
     else return "\033[31mNX disabled\033[m";
 }
 
@@ -140,7 +129,7 @@ char *chk_elf_pie(Binary *elf){
     // check aslr first
     unsigned int aslr=chk_user_aslr_flag();
     if(aslr == 0) CHK_ERROR4("Check ASLR failed");
-    if(aslr == 1) return "\033[31mASLR LEVEL 0\033[m";
+    if(aslr == 48) return "\033[31mASLR LEVEL 0\033[m";
     uint32_t type;
     switch(elf->bin_type){
         case BIN_TYPE_ELF32:
@@ -285,8 +274,8 @@ char *chk_elf_stripped(Binary *elf){
         }
         sym=sym->sym_next;
     }
-    if(strip) return "\033[31mStripped\033[m";
-    else return "\033[32mNot Stripped\033[m";
+    if(strip) return "\033[32mStripped\033[m";
+    else return "\033[31mNot Stripped\033[m";
 }
 
 /*  
@@ -312,7 +301,10 @@ chk_info *chk_elf_sanitized(Binary *elf){
     Symbol *sym=elf->sym->sym_next;
     while(sym){
         /*  only need dynamic func*/
-        if(sym->sym_type == SYM_TYPE_FUNC) continue;
+        if(sym->sym_type == SYM_TYPE_FUNC){
+            sym=sym->sym_next;
+            continue;
+        }
         const char *name=sym->sym_name;
         /*  compare strlen(san_str[.]) bytes */
         for(int i=0;i<CHK_SAN_NUM;i++){
@@ -345,7 +337,7 @@ chk_info *chk_elf_sanitized(Binary *elf){
         sect=sect->sect_next;
     }
     if(!text) CHK_ERROR4("text section not found.");
-    const uint8_t endbr64[4]={0xf3,0x0f,0x1e,0xfa};
+    const uint8_t endbr64[5]={0xf3,0x0f,0x1e,0xfa,'\0'};
     if(strstr(sect->sect_bytes,endbr64)) cet_bool[0]=true;
     /*  
         check shadow call stack
@@ -354,23 +346,23 @@ chk_info *chk_elf_sanitized(Binary *elf){
     */
    cet_bool[1]=false;
    /*   return chk_info */
-    char *type="Sanitized";
+    char *type="Sanitized ";
     chk_info *info=MALLOC(1,chk_info);
     /*  head    */
     chk_info *head=info;
     for(int i=0;i<CHK_SAN_NUM;i++){
         chk_info *new=MALLOC(1,chk_info);
-        new->chk_type=type;
-        if(san_bool[i] ==false) new->chk_result=str_append(san_str[i]," \033[32mNO\033[m\n");
-        else new->chk_result=str_append(san_str[i]," \033[31mYes\033[m\n");
+        new->chk_type=str_append(type,san_str[i]);
+        if(san_bool[i] ==false) new->chk_result="\033[31mNO\033[m";
+        else new->chk_result="\033[32mYes\033[m";
         info->chk_next=new;
         info=new;
     }
-    for(int i=CHK_SAN_NUM;i<CHK_CET_NUM+CHK_SAN_NUM;i++){
+    for(int i=0;i<CHK_CET_NUM;i++){
         chk_info *new=MALLOC(1,chk_info);
-        new->chk_type=type;
-        if(cet_bool[i] ==false) new->chk_result=str_append(cet_str[i]," \033[32mNO\033[m\n");
-        else new->chk_result=str_append(cet_str[i]," \033[31mYes\033[m\n");
+        new->chk_type=str_append(type,cet_str[i]);
+        if(cet_bool[i] ==false) new->chk_result="\033[31mNO\033[m";
+        else new->chk_result="\033[32mYes\033[m";
         info->chk_next=new;
         info=new;
     }
@@ -381,11 +373,23 @@ chk_info *chk_elf_sanitized(Binary *elf){
 }
 
 /*  check fortified */
-typedef struct hash{
+typedef struct hashmap{
     bool _hit;
     char *_str;
-    struct hash *_next;
+    struct hashmap *_next;
 }hashmap;
+
+void free_hashmap(hashmap *hm){
+    for(int i=0;i<HASHMAP_SIZE;i++){
+        hashmap *head=(hm+i)->_next;
+        while(head){
+            hashmap *tmp=head;
+            head=head->_next;
+            free(tmp);
+        }
+    }
+    free(hm);
+}
 
 chk_info *chk_elf_fortified(Binary *elf){
     /*  check FORTIFY_SOURCE    */
@@ -409,7 +413,7 @@ chk_info *chk_elf_fortified(Binary *elf){
         case BIN_TYPE_ELF32:
             uint16_t dyn32_num=dynamic->sect_size/sizeof(E32_dyn);
             for(uint16_t num=0;num < dyn32_num;num++){
-                uintptr_t dyn32_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E32_dyn);
+                uintptr_t dyn32_addr=(uintptr_t)dynamic->sect_bytes+num*sizeof(E32_dyn);
                 E32_dyn *dyn32=(E32_dyn*)dyn32_addr;
                 /*  d_tag == DT_NEEDED  */
                 if(dyn32->d_tag == DT_NEEDED){
@@ -424,7 +428,7 @@ chk_info *chk_elf_fortified(Binary *elf){
         case BIN_TYPE_ELF64:
             uint16_t dyn64_num=dynamic->sect_size/sizeof(E64_dyn);
             for(uint16_t num=0;num < dyn64_num;num++){
-                uintptr_t dyn64_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E64_dyn);
+                uintptr_t dyn64_addr=(uintptr_t)dynamic->sect_bytes+num*sizeof(E64_dyn);
                 E64_dyn *dyn64=(E64_dyn*)dyn64_addr;
                 /*  d_tag == DT_NEEDED  */
                 if(dyn64->d_tag == DT_NEEDED){
@@ -451,7 +455,7 @@ chk_info *chk_elf_fortified(Binary *elf){
     hashmap *hm=MALLOC(HASHMAP_SIZE,hashmap);
     size_t fortify_count=0;
     /*  init hashmap    */
-    for(int i=0;i<HASHMAP_SIZE;i++) {(hm+i)->_next=NULL; (hm+i)->_hit=false;}
+    for(int i=0;i<HASHMAP_SIZE;i++) {(hm+i)->_next=NULL;}
     Symbol *libc_sym=libc->sym->sym_next;
     while(libc_sym){
         char *suffix="_chk";
@@ -461,6 +465,7 @@ chk_info *chk_elf_fortified(Binary *elf){
             size_t map_index=(libc_func_len*libc_func_len)%HASHMAP_SIZE;
             /* head insert  */
             hashmap *new=MALLOC(1,hashmap);
+            new->_hit=false;
             new->_str=libc_func_str;
             new->_next=(hm+map_index)->_next;
             (hm+map_index)->_next=new;
@@ -469,14 +474,13 @@ chk_info *chk_elf_fortified(Binary *elf){
         libc_sym=libc_sym->sym_next;
     }
     /*  return chk_info    */
-    char *type="Fortified";
+    char *type="Fortified ";
     chk_info *info=MALLOC(1,chk_info);
     /*  head    */
     chk_info *head=info;
     /*  compare elf funcs with libc funcs   */
-    /*  count fortified and fortifiable */
+    /*  count fortified */
     size_t fortified_count=0;
-    size_t fortifiable_count=0;
     Symbol *elf_sym=elf->sym->sym_next;
     while(elf_sym){
         char *prefix="__";
@@ -493,29 +497,32 @@ chk_info *chk_elf_fortified(Binary *elf){
                     hm_tmp->_hit=true;
                     chk_info *new=MALLOC(1,chk_info);
                     new->chk_type=type;
-                    new->chk_result=str_append(hm_tmp->_str,"\033[31mFortified\033[m\n");
+                    new->chk_result=str_append(hm_tmp->_str," \033[32mFortified\033[m");
                     info->chk_next=new;
                     info=new;
                 }
             }
-            /*  fortifiable  */
+            /*  fortifiable  
             else if(strncmp(hm_tmp->_str+strlen(prefix),elf_func_str,elf_func_len)==0){
-                fortifiable_count++;
                 if(!hm_tmp->_hit){
                     hm_tmp->_hit=true;
                     chk_info *new=MALLOC(1,chk_info);
-                    new->chk_type=type;
-                    new->chk_result=str_append(elf_func_str,"\033[32mFortifiable\033[m\n");
+                    new->chk_type=type;;
+                    new->chk_result=str_append(elf_func_str," \033[31mFortifiable\033[m");
                     info->chk_next=new;
                     info=new;
                 }
             }
+            */
             hm_tmp=hm_tmp->_next;
         }
         elf_sym=elf_sym->sym_next;
     }
-    /*  free hashmap    */
-    free(hm);
+    /*  tail    */
+    info->chk_next=NULL;
+    /*  free hashmap and libc   */
+    free_hashmap(hm);
+    free_binary(libc);
     /*  head insert */
     chk_info *insert=head;
     /*  first info : whether libc has FORTIFY SOURCE    */
@@ -523,8 +530,8 @@ chk_info *chk_elf_fortified(Binary *elf){
     libc_info->chk_type=type;
     char *first_info="FORTIFY SOURCE support available (";
     first_info=str_append(first_info,libc_path);
-    if(fortify_count) libc_info->chk_result=str_append(first_info,") : \033[31mYes\033[m\n");
-    else libc_info->chk_result=str_append(first_info,") : \033[32mNO\033[m\n");
+    if(fortify_count) libc_info->chk_result=str_append(first_info,") : \033[32mYes\033[m");
+    else libc_info->chk_result=str_append(first_info,") : \033[31mNO\033[m");
     libc_info->chk_next=insert->chk_next;
     insert->chk_next=libc_info;
     insert=libc_info;
@@ -533,12 +540,10 @@ chk_info *chk_elf_fortified(Binary *elf){
     target_info->chk_type=type;
     char *second_info="Binary compiled with FORTIFY SOURCE support (";
     second_info=str_append(second_info,elf->bin_name);
-    if(fortified_count) target_info->chk_result=str_append(second_info,") : \033[31mYes\033[m\n");
-    else target_info->chk_result=str_append(second_info,") : \033[32mNO\033[m\n");
+    if(fortified_count) target_info->chk_result=str_append(second_info,") : \033[32mYes\033[m");
+    else target_info->chk_result=str_append(second_info,") : \033[31mNO\033[m");
     target_info->chk_next=insert->chk_next;
     insert->chk_next=target_info;
-    /*  tail    */
-    info->chk_next=NULL;
 
     return head;
 }
@@ -556,7 +561,7 @@ chk_info *chk_file_one_elf(Binary *elf){
         chk_elf_stripped,
     };
     char *chk_basic_array[CHK_BAS_NUM]={
-        "FILE",
+        "File",
         "RELRO",
         "STACK CANARY",
         "NX",
@@ -587,10 +592,13 @@ chk_info *chk_file_one_elf(Binary *elf){
         };
         for(int num=0;num < CHK_EXT_NUM;num++){
             chk_info *result=chk_extented_func[num](elf);
+            chk_info *tmp=result;
             elf_info->chk_next=result->chk_next;
             /*  find the tail   */
             while(result->chk_next) result=result->chk_next;
             elf_info=result;
+            /*  free fortify/sanitize's head */
+            free(tmp);
         }
     }
     /*  tail    */

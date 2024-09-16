@@ -51,18 +51,23 @@ static struct option long_options[]={
     {"extended",no_argument,NULL,'e'}
 };
 
-/*  check function  type*/
+/*  check function type*/
 static chk_func func=CHK_UNKNOWN;
 static char *arg;
 static uint8_t chk_mode;
+
+/*  extern format.c  */
 extern bool EXTENTED;
 extern output OUTPUT;
+extern strlink sl;
 
 /*  parse args  */
 static void parse_args(int *pargc,char ***pargv){
     /*  default global flag */
     EXTENTED=false;
     OUTPUT=cli;
+    /*  init strlink    */
+    sl._next=NULL;
     /*  help page   */
     if(*pargc <2) help();
     /*  option args */
@@ -151,4 +156,6 @@ int main(int argc,char **argv){
         printf("\033[31mError:Unknown check function.\033[m\n\n");
         break;
     }
+    /*  free str to solve memory leak */
+    free_str();
 }

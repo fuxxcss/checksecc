@@ -11,27 +11,25 @@
  *  linux on x86
  */
 
-// chk_elf_pie can use this return 0 1 2 3 .
+// chk_elf_pie can use this return 0 48('0') 49('1') 50('2').
 unsigned int chk_user_aslr_flag(){
-    //read /proc/sys/kernel/randomize_va_space
-    int fd;
-    fd=open("/proc/sys/kernel/randomize_va_space","r");
-    if(fd < 0) CHK_ERROR4("open randomize_va_space failed");
-    unsigned int aslr;
-    if(read(fd,&aslr,8) < 0) CHK_ERROR4("read randomize_va_space failed");
-    close(fd);
-    // because CHK_ERROR4 return 0
-    return ++aslr;
+    ///proc/sys/kernel/randomize_va_space is empty file , read 4 bytes
+    FILE *fp;
+    fp=fopen("/proc/sys/kernel/randomize_va_space","r");
+    if(fp == NULL) CHK_ERROR4("open randomize_va_space failed");
+    unsigned int aslr=0;
+    if(fread(&aslr,sizeof(char),1,fp) < 0) CHK_ERROR4("read randomize_va_space failed");
+    fclose(fp);
+    return aslr;
 }
 
 //user space ASLR
 char *chk_user_aslr(char *){
-    // return ++aslr
     unsigned int aslr=chk_user_aslr_flag();
     if(aslr == 0) return NULL;
-    else if(aslr ==1) return "\033[31mASLR LEVEL 0\033[m";
-    else if(aslr ==2) return "\033[33mASLR LEVEL 1\033[m";
-    else if(aslr ==3) return "\033[32mASLR LEVEL 2\033[m";
+    else if(aslr ==48) return "\033[31mLEVEL 0\033[m";
+    else if(aslr ==49) return "\033[33mLEVEL 1\033[m";
+    else if(aslr ==50) return "\033[32mLEVEL 2\033[m";
     else CHK_ERROR4("Unknown ASLR LEVEL");
 }
 
@@ -47,16 +45,13 @@ bool chk_cpu_nx(){
     FILE *fp;
     fp=fopen("/proc/cpuinfo","r");
     if(fp == NULL) CHK_ERROR3("open cpuinfo failed");
-    // size = 0 
-    unsigned int size=FILE_SIZE(fp);
-    printf("%d\n",size);
+    // /proc/cpuinfo is empty file , read 4096 bytes
+    char *cpuinfo=MALLOC(MAXBUF+1,char);
+    if(fread(cpuinfo,sizeof(char),MAXBUF,fp) < 0) CHK_ERROR3("read cpuinfo failed");
     // need to add '\0'
-    char *cpuinfo=MALLOC(size+1,char);
-    if(fread(cpuinfo,sizeof(char),size,fp) < 0) CHK_ERROR3("read cpuinfo failed");
-    cpuinfo[size]='\0';
-    CHK_PRINT1(cpuinfo);
-    close(fp);
+    cpuinfo[MAXBUF]='\0';
     char *str=strstr(cpuinfo," nx ");
+    fclose(fp);
     free(cpuinfo);
     if(str) return true;
     else return false;
@@ -114,16 +109,22 @@ char *chk_kernel_pti(char *info){
 }
 
 //kernel config
-char *chk_kernel_config(char *option){
+char *chk_kernel_config(char *option,char **kconfig){
     char *kernelinfo=NULL;
+    // config path
+    char *config=NULL;
+    // config file size
+    unsigned int size=0;
     FILE *fp;
     if(option == NULL) {
         // set CONFIG_IKCONFIG
         gzFile gzfp;
-        gzfp=gzdopen("/proc/config.gz","rb");
+        config="/proc/config.gz";
+        gzfp=gzopen(config,"rb");
         if(gzfp != NULL) {
-            unsigned int size=gzFILE_SIZE(gzfp);
-            kernelinfo=MALLOC(size,char);
+            size=gzFILE_SIZE(gzfp);
+            if(size == 0) CHK_ERROR4("/proc/config.gz empty file");
+            kernelinfo=MALLOC(size+1,char);
             size_t result=gzread(gzfp,kernelinfo,size);
             gzclose(gzfp);
             if(result < 0){
@@ -136,13 +137,13 @@ char *chk_kernel_config(char *option){
         struct utsname uts;
         if(uname(&uts) < 0) CHK_ERROR4("uname -r failed");
         char *release=uts.release;
-        char *config;
         // /boot/config-${release}
         config=str_append("/boot/config-",release);
         fp=fopen(config,"r");
         if(fp) {
-            unsigned int size=FILE_SIZE(fp);
-            kernelinfo=MALLOC(size,char);
+            size=FILE_SIZE(fp);
+            if(size == 0) CHK_ERROR4("/boot/config-${release} empty file");
+            kernelinfo=MALLOC(size+1,char);
             size_t result=fread(kernelinfo,sizeof(char),size,fp);
             fclose(fp);
             if(result < 0){
@@ -156,8 +157,9 @@ char *chk_kernel_config(char *option){
         config=str_append(lh_release,"/.config");
         fp=fopen(config,"r");
         if(fp) {
-            unsigned int size=FILE_SIZE(fp);
-            kernelinfo=MALLOC(size,char);
+            size=FILE_SIZE(fp);
+            if(size == 0) CHK_ERROR4("/usr/src/linux-headers-${release} empty file");
+            kernelinfo=MALLOC(size+1,char);
             size_t result=fread(kernelinfo,sizeof(char),size,fp);
             if(result < 0){
                 free(kernelinfo);
@@ -169,10 +171,12 @@ char *chk_kernel_config(char *option){
         CHK_ERROR4("cannot find kernel config");
     }
     else {
-        fp=fopen(option,"r");
+        config=option;
+        fp=fopen(config,"r");
         if(fp == NULL) CHK_ERROR4("open kconfig failed");
-        unsigned int size=FILE_SIZE(fp);
-        kernelinfo=MALLOC(size,char);
+        size=FILE_SIZE(fp);
+        if(size == 0) CHK_ERROR4("input kconfig empty file");
+        kernelinfo=MALLOC(size+1,char);
         size_t result=fread(kernelinfo,sizeof(char),size,fp);
         fclose(fp);
         if(result < 0){
@@ -182,14 +186,19 @@ char *chk_kernel_config(char *option){
     }
     // kernelinfo is ready
     kernelinfo_ok:
+    *kconfig=config;
+    // need to add '\0'
+    kernelinfo[size]='\0';
     return kernelinfo;
 }
 
 // https://www.kernel.org/doc/html/latest/security/self-protection.html
 // https://www.kernelconfig.io/*
 void chk_kernel(char *kernelinfo,char *option){
+    // kconfig path
+    char *kconfig=NULL;
     if(kernelinfo == NULL)
-        kernelinfo=chk_kernel_config(option);
+        kernelinfo=chk_kernel_config(option,&kconfig);
     // chk kernel feature
     char *(*chk_kernel_func[CHK_KERN_NUM])(char *)={
         chk_user_aslr,
@@ -230,6 +239,12 @@ void chk_kernel(char *kernelinfo,char *option){
         }
         /*  tail    */
         kernel_info->chk_next=NULL;
+        /*  head insert kconfig */
+        chk_info *kconfig_info=MALLOC(1,chk_info);
+        kconfig_info->chk_type="Kconfig";
+        kconfig_info->chk_result=kconfig;
+        kconfig_info->chk_next=head->chk_next;
+        head->chk_next=kconfig_info;
         /*  format output   */
         format_output(head);
         /*  free kernelinfo */

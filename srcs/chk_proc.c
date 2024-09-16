@@ -13,15 +13,17 @@
 char *chk_linux_proc_seccomp(char *path){
     char *status=str_append(path,"/status");
     FILE *fp;
+    // status is empty file, read 4096 bytes
     fp=fopen(status,"r");
     if(fp == NULL) CHK_ERROR4("open /proc/pid/status failed");
-    unsigned int size=FILE_SIZE(fp);
-    char *seccomp=MALLOC(size,char);
-    if(fread(seccomp,sizeof(char),size,fp) < 0) CHK_ERROR4("read /proc/pid/status failed");
+    char *seccomp=MALLOC(MAXBUF+1,char);
+    if(fread(seccomp,sizeof(char),MAXBUF,fp) < 0) CHK_ERROR4("read /proc/pid/status failed");
+    // need to add '\0'
+    seccomp[MAXBUF]='\0';
     char *location=strstr(seccomp,"Seccomp:");
     if(location == NULL) CHK_ERROR4("Seccomp flag not found");
     // Seccomp:	x , flag=x
-    unsigned int offset=10;
+    unsigned int offset=9;
     char flag=*(location+offset);
     // collect resource
     fclose(fp);
@@ -29,7 +31,7 @@ char *chk_linux_proc_seccomp(char *path){
     if(flag == '0') return "\033[31mNo Seccomp\033[m";
     else if(flag == '1') return "\033[32mSeccomp strict\033[m";
     else if(flag =='2') return "\033[32mSeccomp-bpf\033[m";
-    else CHK_ERROR4("Unknown Seccomp LEVEL");
+    else return "Unknown Seccomp LEVEL";
 }
 
 // check Selinux mode
@@ -42,8 +44,11 @@ char *chk_linux_proc_selinux(char *){
         else CHK_ERROR4("open /etc/selinux/config failed");
     }
     unsigned int size=FILE_SIZE(fp);
-    char *selinux=MALLOC(size,char);
+    if(size == 0) CHK_ERROR4("empty file");
+    char *selinux=MALLOC(size+1,char);
     if(fread(selinux,sizeof(char),size,fp) < 0) CHK_ERROR4("read /etc/selinux/config failed");
+    // need to add '\0'
+    selinux[size]='\0';
     if(strstr(selinux,"SELINUX=enforcing")) return "\033[32mEnforcing\033[m";
     else if(strstr(selinux,"SELINUX=permissive")) return "\033[32mPermissive\033[m";
     else if(strstr(selinux,"SELINUX=disabled")) return "\033[31mDisabled\033[m";
@@ -92,13 +97,13 @@ void chk_linux_proc(char *path,char *pid,char *exe){
 }
 
 void chk_proc(char *option,chk_proc_option cpo){
+    DIR *dir=NULL;
     switch (cpo)
     {
     case cpo_id:
         char *proc=str_append("/proc/",option);
-        int fd=open(proc,"r");
-        if(fd < 0) CHK_ERROR2(option,"pid is not exist or not unprivileged(not root)");
-        close(fd);
+        dir=opendir(proc);
+        if(dir == NULL) CHK_ERROR2(proc,"pid is not exist or not unprivileged(not root)");
         char *link=str_append(proc,"/exe");
         // max len 64
         char exe[64];
@@ -107,7 +112,6 @@ void chk_proc(char *option,chk_proc_option cpo){
         chk_linux_proc(proc,option,exe);
         break;
     case cpo_all:
-        DIR *dir;
         if((dir=opendir("/proc")) == NULL) CHK_ERROR1("/proc is not exist or not accessible");
         /*  check all procs   */
         struct dirent *file;
@@ -118,4 +122,5 @@ void chk_proc(char *option,chk_proc_option cpo){
         }
         break;
     }
+    if(dir) closedir(dir);
 }

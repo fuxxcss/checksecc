@@ -19,6 +19,8 @@
 #define CHK_LIBC_PATH_NUM 3
 /*  hashmap size    */
 #define HASHMAP_SIZE (2 << 6)
+/*  max buffer size */
+#define MAXBUF 4096
 
 /*  c bool enum */
 typedef enum{
@@ -68,5 +70,11 @@ typedef struct chk_info{
     char *chk_result;
     struct chk_info *chk_next;
 }chk_info;
+
+/*  str struct  */
+typedef struct strlink{
+    char *_str;
+    struct strlink *_next;
+}strlink;
 
 #endif

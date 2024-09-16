@@ -35,7 +35,7 @@ void load_elf_programhs(Binary *elf,void *mem,uint64_t *ph_info){
                 uintptr_t ph32_addr=ph_addr+ph_num*ph_info[1];
                 E32_ph *ph32=(E32_ph*)ph32_addr;
                 Programh *new=MALLOC(1,Programh);
-                new->sgm_type=load_elf_programh_types(ph32->p_flags);
+                new->sgm_type=load_elf_programh_types(ph32->p_type);
                 new->sgm_vma=ph32->p_vaddr;
                 new->sgm_flag=ph32->p_flags;
                 ph->ph_next=new;
@@ -47,7 +47,7 @@ void load_elf_programhs(Binary *elf,void *mem,uint64_t *ph_info){
                 uintptr_t ph64_addr=ph_addr+ph_num*ph_info[1];
                 E64_ph *ph64=(E64_ph*)ph64_addr;
                 Programh *new=MALLOC(1,Programh);
-                new->sgm_type=load_elf_programh_types(ph64->p_flags);
+                new->sgm_type=load_elf_programh_types(ph64->p_type);
                 new->sgm_vma=ph64->p_vaddr;
                 new->sgm_flag=ph64->p_flags;
                 ph->ph_next=new;
@@ -130,11 +130,11 @@ void load_elf_symbols(Binary *elf){
     /*  tail    */
     sym->sym_next=NULL;
     /*  symtab  */
-    if(sym_addr[0] == 0) LDR_ERROR1(elf->bin_name,"no symtab.");
-    else load_elf_symbol_funcs(elf,sym_addr[0],size[0],sym_addr[2],SYM_TYPE_FUNC);
+    if(sym_addr[0] != 0) load_elf_symbol_funcs(elf,sym_addr[0],size[0],sym_addr[2],SYM_TYPE_FUNC);
     /*  dynsym  */
-    if(sym_addr[1] == 0) LDR_ERROR1(elf->bin_name,"no dynsym.");
-    else load_elf_symbol_funcs(elf,sym_addr[1],size[1],sym_addr[3],SYM_TYPE_DYN_FUNC); 
+    if(sym_addr[1] != 0) load_elf_symbol_funcs(elf,sym_addr[1],size[1],sym_addr[3],SYM_TYPE_DYN_FUNC); 
+    
+    if(!sym_addr[0] && !sym_addr[1]) LDR_ERROR1(elf->bin_name,"no symbols.");
 }
 
 uintptr_t load_elf_section_shstrtab(Binary *elf,void *mem,uint64_t *sh_info){
@@ -186,8 +186,9 @@ void load_elf_sections(Binary *elf,void *mem,uint64_t *sh_info){
     elf->sect=sect;
     /*  we need .shstrtab first */
     uintptr_t shstrtab_addr=load_elf_section_shstrtab(elf,mem,sh_info);
+    /*  sect point to .shstrtab */
     sect=sect->sect_next;
-    for(int sh_num=0;sh_num < sh_info[1];sh_num++){
+    for(uint64_t sh_num=0;sh_num < sh_info[1];sh_num++){
         /*  we had .shstrtab    */
         if(sh_num == sh_info[3]) continue;
         Section *new=MALLOC(1,Section);
@@ -225,11 +226,15 @@ void load_elf_sections(Binary *elf,void *mem,uint64_t *sh_info){
             new->sect_type=SECT_TYPE_DATA;
         /*  load section contents   */
         /*  do not load .bss ,IT IS NOBITS  */
-        if(strcmp(name,".bss") == 0) continue;
-        uint8_t *bytes=MALLOC(size,uint8_t);
-        new->sect_bytes=bytes;
-        for(uint64_t offset=0;offset < size;offset++)
-            bytes[offset]=*(uint8_t*)(sc_addr+offset);
+        if(strcmp(name,".bss") != 0){
+            /*  plus one for '\0'   */
+            uint8_t *bytes=MALLOC(size+1,uint8_t);
+            new->sect_bytes=bytes;
+            for(uint64_t offset=0;offset < size;offset++)
+                bytes[offset]=*(uint8_t*)(sc_addr+offset);
+            bytes[size]='\0';
+        }
+        else new->sect_bytes=NULL;
         sect->sect_next=new;
         sect=new;
     }
@@ -473,7 +478,45 @@ Binary *load_binary(char *fn){
 }
 
 void free_binary(Binary *bin){
-    munmap(bin->mem,bin->bin_size);
+    if(bin->mem)
+        munmap(bin->mem,bin->bin_size);
+    if(bin->sym){
+        Symbol *head=bin->sym;
+        Symbol *sym=bin->sym->sym_next;
+        while(sym){
+            Symbol *tmp=sym;
+            sym=sym->sym_next;
+            free(tmp);
+        }
+        free(head);
+    }
+    if(bin->sect){
+        Section *head=bin->sect;
+        Section *sect=bin->sect->sect_next;
+        while(sect){
+            Section *tmp=sect;
+            sect=sect->sect_next;
+            if(tmp->sect_bytes) free(tmp->sect_bytes);
+            free(tmp);
+        }
+        free(head);
+    }
+    if(bin->hd){
+        /*  union maybe cause double free   */
+        if(bin->hd->Pxheader.ph->ph_next){
+            Programh *ph=bin->hd->Pxheader.ph->ph_next;
+            while(ph){
+                Programh *tmp=ph;
+                ph=ph->ph_next;
+                free(tmp);
+            }
+        }
+        /*  ph and peh use same pointer */
+        free(bin->hd->Pxheader.ph);
+        /*  e32fh e64fh and mzfh use same pointer */
+        if(bin->hd->Fileheader.e32fh) free(bin->hd->Fileheader.e32fh);
+        free(bin->hd);
+    }
     free(bin);
 }
 
