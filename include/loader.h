@@ -153,11 +153,11 @@ typedef struct Binary{
 Binary *load_binary(char *fn);
 
 /*  load symbols, sections  */
-void load_symbols(Binary *bin,void *mem);
-void load_info(Binary *bin,void *mem);
-void load_sections(Binary *bin,void *mem,uint64_t *sh_info);
-void load_programhs(Binary *bin,void *mem);
-void load_programhs(Binary *bin,void *mem);
+void load_symbols(Binary *bin);
+void load_info(Binary *bin);
+void load_sections(Binary *bin,uint64_t *sh_info);
+void load_programhs(Binary *bin);
+void load_programhs(Binary *bin);
 
 /*  show all info   */
 void show_symbols(Binary *bin);

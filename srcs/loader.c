@@ -23,7 +23,8 @@ ph_type load_elf_programh_types(uint64_t flags){
             return PH_UNKNOWN;
     }
 }
-void load_elf_programhs(Binary *elf,void *mem,uint64_t *ph_info){
+void load_elf_programhs(Binary *elf,uint64_t *ph_info){
+    void *mem=elf->mem;
     /*  program headers addr    */
     uintptr_t ph_addr=(uintptr_t)mem+ph_info[0];
     /*  head    */
@@ -137,7 +138,8 @@ void load_elf_symbols(Binary *elf){
     if(!sym_addr[0] && !sym_addr[1]) LDR_ERROR1(elf->bin_name,"no symbols.");
 }
 
-uintptr_t load_elf_section_shstrtab(Binary *elf,void *mem,uint64_t *sh_info){
+uintptr_t load_elf_section_shstrtab(Binary *elf,uint64_t *sh_info){
+    void *mem=elf->mem;
     char *name=".shstrtab";
     uint64_t size,flags;
     /*  section contents addr and section vma*/
@@ -175,7 +177,8 @@ uintptr_t load_elf_section_shstrtab(Binary *elf,void *mem,uint64_t *sh_info){
     return sc_addr;
 }
 
-void load_elf_sections(Binary *elf,void *mem,uint64_t *sh_info){
+void load_elf_sections(Binary *elf,uint64_t *sh_info){
+    void *mem=elf->mem;
     char *name;
     uint64_t size,flags;
     /*  section contents addr and section vma*/
@@ -185,7 +188,7 @@ void load_elf_sections(Binary *elf,void *mem,uint64_t *sh_info){
     /*  head    */
     elf->sect=sect;
     /*  we need .shstrtab first */
-    uintptr_t shstrtab_addr=load_elf_section_shstrtab(elf,mem,sh_info);
+    uintptr_t shstrtab_addr=load_elf_section_shstrtab(elf,sh_info);
     /*  sect point to .shstrtab */
     sect=sect->sect_next;
     for(uint64_t sh_num=0;sh_num < sh_info[1];sh_num++){
@@ -242,7 +245,8 @@ void load_elf_sections(Binary *elf,void *mem,uint64_t *sh_info){
     sect->sect_next=NULL;
 }
 
-void load_elf(Binary *elf,void *mem){
+void load_elf(Binary *elf){
+    void *mem=elf->mem;
     /*  load sections   */
     /*  section headers */
     /*  uint64_t [shtb_addr,sh_num,sh_size,shstr_offset] */
@@ -277,9 +281,9 @@ void load_elf(Binary *elf,void *mem){
         break;
     }
     /*  load headers */
-    load_elf_programhs(elf,mem,ph_info);
+    load_elf_programhs(elf,ph_info);
     /*  load sections   */
-    load_elf_sections(elf,mem,sh_info);
+    load_elf_sections(elf,sh_info);
     if(elf->sect->sect_next == NULL) return;
     /*  load symbols    */
     load_elf_symbols(elf);
@@ -333,7 +337,8 @@ void load_pe_sections(Binary *pe,uintptr_t *sh_info){
     sect->sect_next=NULL;
 }
 
-void load_pe(Binary *pe,void *mem){
+void load_pe(Binary *pe){
+    void *mem=pe->mem;
     /*  load sections   */
     /*  sh_info [mem,sh_addr,sh_num]   */
     uintptr_t sh_info[3];
@@ -380,7 +385,8 @@ void load_info_arch(Binary *bin,uint64_t machine){
         }
 }
 
-void load_info(Binary *bin,void *mem){
+void load_info(Binary *bin){
+    void *mem=bin->mem;
     /*  explicit type conversion */
     uint16_t *mz=(uint16_t*)mem;
     uint32_t *elf=(uint32_t*)mem;
@@ -453,7 +459,7 @@ Binary *load_binary(char *fn){
     bin->mem=file_mem;
     bin->bin_size=file_size;
     bin->bin_name=file_name;
-    load_info(bin,file_mem);
+    load_info(bin);
     if(bin->bin_type < 0) LDR_ERROR2(fn,"unsupported binary type.");
     if(bin->bin_arch < 0) LDR_ERROR2(fn,"unsupported architecture.");
     if(bin->entry ==0 ) LDR_ERROR1(fn,"cannot find entry point.");
@@ -462,13 +468,13 @@ Binary *load_binary(char *fn){
     switch (bin->bin_type)
     {
     case BIN_TYPE_ELF32:
-        load_elf(bin,file_mem);
+        load_elf(bin);
         break;
     case BIN_TYPE_ELF64:
-        load_elf(bin,file_mem);
+        load_elf(bin);
         break;
     case BIN_TYPE_PE:
-        load_pe(bin,file_mem);
+        load_pe(bin);
         break;
     }
     if(bin->sect->sect_next == NULL) LDR_ERROR1(fn,"load sections failed.");

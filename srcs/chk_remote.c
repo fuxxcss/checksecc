@@ -142,13 +142,13 @@ void chk_remote_proc(SSL *ssl){
         bin->mem=file_mem;
         bin->bin_size=file_size;
         bin->bin_name=file_name;
-        load_info(bin,file_mem);
+        load_info(bin);
         if(bin->bin_type < 0) LDR_ERROR3(file_name,"unsupported binary type.");
         if(bin->bin_arch < 0) LDR_ERROR3(file_name,"unsupported architecture.");
         if(bin->entry ==0 ) LDR_ERROR1(file_name,"cannot find entry point.");
         bin->sect=NULL;
         bin->sym=NULL;
-        load_elf(bin,file_mem);
+        load_elf(bin);
         if(bin->sect->sect_next == NULL) LDR_ERROR3(file_name,"load sections failed.");
         if(bin->sym->sym_next == NULL) LDR_ERROR3(file_name,"load symbols failed.");
         if(bin->hd == NULL) LDR_ERROR3(file_name,"load headers failed.");
