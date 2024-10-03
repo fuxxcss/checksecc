@@ -154,6 +154,9 @@ C/C++ API:<br>
 The checksecc provides a library and documentation to help you to do more flexible operation with this api.
 ## ToDo
 We expect more modern operating systems to be included.
+fix some errors:<br>
+/lib64<br>
+DSO has no entrypoint
 ## Something
 we removed some uncommon features and added some useful features.
 
