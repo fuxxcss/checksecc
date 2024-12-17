@@ -16,8 +16,6 @@ static void help(){
       --proc-all\n\
       --proc-id={process ID}\n\
       --kernel[=kconfig]\n\
-      --remote={ip:port}\n\
-      --remote-rev={port}\n\
       --version\n\
       --help\n\n\
      ## Modifiers\n\
@@ -43,8 +41,6 @@ static struct option long_options[]={
     {"proc-all",no_argument,NULL,'3'},
     {"proc-id",required_argument,NULL,'4'},
     {"kernel",optional_argument,NULL,'5'},
-    {"remote",required_argument,NULL,'6'},
-    {"remote-rev",required_argument,NULL,'7'},
     {"version",no_argument,NULL,'v'},
     {"help",no_argument,NULL,'h'},
     {"format",required_argument,NULL,'f'},
@@ -113,16 +109,6 @@ static void parse_args(int *pargc,char ***pargv){
             func=CHK_KERNEL;
             arg=optarg;
             break;
-        case '6':
-            func=CHK_REMOTE;
-            arg=optarg;
-            chk_mode=cro_open;
-            break;
-        case '7':
-            func=CHK_REMOTE;
-            arg=optarg;
-            chk_mode=cro_reverse;
-            break;
         case 'f':
             OUTPUT=set_format(optarg);
         case 'e':
@@ -148,9 +134,6 @@ int main(int argc,char **argv){
         break;
     case CHK_KERNEL:
         chk_kernel(NULL,arg);
-        break;
-    case CHK_REMOTE:
-        chk_remote(arg,chk_mode);
         break;
     case CHK_UNKNOWN:
         printf("\033[31mError:Unknown check function.\033[m\n\n");

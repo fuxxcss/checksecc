@@ -41,12 +41,6 @@ typedef enum {
     cpo_id,
 }chk_proc_option;
 
-/*  cro enum    */
-typedef enum{
-    cro_open,
-    cro_reverse,
-}chk_remote_option;
-
 /*  output format enum  */
 typedef enum{
     cli,
@@ -61,7 +55,6 @@ typedef enum{
     CHK_FILE,
     CHK_PROC,
     CHK_KERNEL,
-    CHK_REMOTE,
 }chk_func;
 
 /*  chk information struct  */

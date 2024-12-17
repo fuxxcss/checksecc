@@ -1,6 +1,17 @@
 # checksecc
+* [Why checksecc ?](#why)
+* [Introduction](#introduction)
+* [How to Install ?](#install)
+* [How to Use ?](#check-one-elf-file)
+      * [Check File](#check-one-elf-file)
+      * [Check Kernel](#check-the-kernel)
+      * [Check Process](#check-one-process)
+* [Version](#version-information)
+* [ToDo]()
+## why
+checksec.sh is a linux specified gadget,because it used Shell and readelf. If you need to check something in other place, maybe you need checksecc.
 ## introduction
-The checksecc is a c rewrite of checksec and has some highlights. It retains all the core functionality of checksec,you can operate on it just like the original.
+The checksecc is a c rewrite of checksec and has some highlights. It retains all the core functionality of checksec,you can operate on it just like the original.we removed some uncommon features and added some useful features.
 ``` shell
 > checkc --help or just checkc
 Usage: checkc [--format={cli,csv,xml,json}] [OPTION]
@@ -19,7 +30,7 @@ Usage: checkc [--format={cli,csv,xml,json}] [OPTION]
       --help
 
      ## Modifiers
-      --format={cli,csv,xml,json}
+      --format={cli,csv,xml,json}have a try
       --extended
 
 For more information, see:
@@ -27,6 +38,7 @@ https://github.com/fuxxcss/checksecc
 
 ```
 ## install 
+install checksecc by source:
 ``` shell
 cd srcs
 make && make install
@@ -147,14 +159,13 @@ checksecc v0.1,fuxxcss
 https://github.com/fuxxcss/checksecc
 
 ```
-## highlights
-remote check:<br>
-(ToDo)You can compile it on modern operating systems such as linux or win, and then check the remote linux host to facilitate further information gathering on a reverse ssl connect.<br>
-C/C++ API:<br>
-The checksecc provides a library and documentation to help you to do more flexible operation with this api.
 ## ToDo
-We expect more modern operating systems to be included.
-## Something
-we removed some uncommon features and added some useful features.
+``` shell
+other install ways
+pe check
+windows check
+fix some error: /lib64 、 DSO has no entrypoint
+```
+
 
 
