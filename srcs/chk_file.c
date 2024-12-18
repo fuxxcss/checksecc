@@ -312,9 +312,7 @@ chk_info *chk_elf_sanitized(Binary *elf){
             size_t size=strlen(str);
             if(strncmp(name,str,size) == 0){
                 san_bool[i]=true;
-                printf("%s %s\n",name,str);
             }
-                
         }
         sym=sym->sym_next;
     }

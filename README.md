@@ -73,7 +73,7 @@ And then use checkc to check this file with extended features.
 > checkc --file=./test --extended
 File                        ./test
 RELRO                       Partial RELRO
-STACK CANARY                Canary found
+STACK CANARY                No Canary found
 NX                          NX enabled
 PIE                         PIE enabled
 RPATH                       NO RPATH
