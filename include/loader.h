@@ -25,6 +25,7 @@
 
 /*  elf format  */
 #define ELF_MAGIC 0x464c457f
+#define ELF_CLASS_INDEX  sizeof(uint32_t)
 #define E32_flag 1
 #define E64_flag 2
 typedef Elf32_Ehdr E32_fh;
@@ -50,10 +51,16 @@ typedef struct section_header PE_sh;
 /*  enum type   */
 typedef enum {
     BIN_TYPE_UNKNOWN=-1,
-    BIN_TYPE_ELF32,
-    BIN_TYPE_ELF64,
-    BIN_TYPE_PE
+    BIN_TYPE_EXEC,
+    BIN_TYPE_DYN,
 }bin_type;
+
+typedef enum {
+    BIN_FORMAT_UNKNOWN=-1,
+    BIN_FORMAT_ELF32,
+    BIN_FORMAT_ELF64,
+    BIN_FORMAT_PE
+}bin_format;
 
 typedef enum {
     ARCH_UNKNOWN=-1,
@@ -73,12 +80,12 @@ typedef enum {
 }sect_type;
 
 typedef enum{
+    PH_UNKNOWN,
     PH_DYNAMIC,
     PH_GNU_RELRO,
     PH_GNU_STACK,
     PH_LOAD,
     PH_INTERP,
-    PH_UNKNOWN
 }ph_type;
 
 /*  struct Symbol: Section: Binary  */
@@ -131,8 +138,10 @@ typedef struct Header{
 typedef struct Binary{
     /*  mmap address    */
     void *mem;
-   /* file format */
+    /* file format */
     bin_type bin_type;
+    /* file type */
+    bin_format bin_format;
     /*   arch  */
     bin_arch bin_arch;
     /*   binary name */

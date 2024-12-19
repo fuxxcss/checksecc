@@ -30,8 +30,8 @@ void load_elf_programhs(Binary *elf,uint64_t *ph_info){
     /*  head    */
     Programh *ph=MALLOC(1,Programh);
     elf->hd->Pxheader.ph=ph;
-    switch (elf->bin_type){
-        case BIN_TYPE_ELF32:
+    switch (elf->bin_format){
+        case BIN_FORMAT_ELF32:
             for(uint16_t ph_num=0;ph_num < ph_info[2];ph_num++){
                 uintptr_t ph32_addr=ph_addr+ph_num*ph_info[1];
                 E32_ph *ph32=(E32_ph*)ph32_addr;
@@ -43,7 +43,7 @@ void load_elf_programhs(Binary *elf,uint64_t *ph_info){
                 ph=new;
             }
             break;
-         case BIN_TYPE_ELF64:
+         case BIN_FORMAT_ELF64:
             for(uint16_t ph_num=0;ph_num < ph_info[2];ph_num++){
                 uintptr_t ph64_addr=ph_addr+ph_num*ph_info[1];
                 E64_ph *ph64=(E64_ph*)ph64_addr;
@@ -60,9 +60,9 @@ void load_elf_programhs(Binary *elf,uint64_t *ph_info){
 }
 
 void load_elf_symbol_funcs(Binary *elf,uintptr_t sym_addr,uint64_t upper,uint64_t str_addr,sym_type type){
-    switch (elf->bin_type)
+    switch (elf->bin_format)
     {
-    case BIN_TYPE_ELF32:
+    case BIN_FORMAT_ELF32:
         for(uint64_t sym_num=0;sym_num < upper;sym_num+=sizeof(E32_sym)){
             E32_sym *sym_st=(E32_sym*)(sym_addr+sym_num);
             Symbol *new;
@@ -78,7 +78,7 @@ void load_elf_symbol_funcs(Binary *elf,uintptr_t sym_addr,uint64_t upper,uint64_
             elf->sym->sym_next=new;
             }
         break;
-    case BIN_TYPE_ELF64:
+    case BIN_FORMAT_ELF64:
         for(uint64_t sym_num=0;sym_num < upper;sym_num+=sizeof(E64_sym)){
             E64_sym *sym_st=(E64_sym*)(sym_addr+sym_num);
             Symbol *new;
@@ -147,16 +147,16 @@ uintptr_t load_elf_section_shstrtab(Binary *elf,uint64_t *sh_info){
     Section *shstrtab=MALLOC(1,Section);
     /*  section header (.shstrtab) addr  */
     uintptr_t sh_addr=(uintptr_t)mem+sh_info[0]+sh_info[3]*sh_info[2];
-    switch (elf->bin_type)
+    switch (elf->bin_format)
     {
-    case BIN_TYPE_ELF32:
+    case BIN_FORMAT_ELF32:
         E32_sh *sh32=(E32_sh*)sh_addr;
         size=sh32->sh_size;
         vma=sh32->sh_addr;
         sc_addr=sh32->sh_offset+(uintptr_t)mem;
         flags=sh32->sh_flags;
         break;
-    case BIN_TYPE_ELF64:
+    case BIN_FORMAT_ELF64:
         E64_sh *sh64=(E64_sh*)sh_addr;
         size=sh64->sh_size;
         vma=sh64->sh_addr;
@@ -199,9 +199,9 @@ void load_elf_sections(Binary *elf,uint64_t *sh_info){
         uintptr_t sh_addr=(uintptr_t)mem+sh_info[0]+sh_num*sh_info[2];
         /*  section name string table addr*/
         uintptr_t sn_addr;
-        switch (elf->bin_type)
+        switch (elf->bin_format)
         {
-        case BIN_TYPE_ELF32:
+        case BIN_FORMAT_ELF32:
             E32_sh *sh32=(E32_sh*)sh_addr;
             sn_addr=shstrtab_addr+sh32->sh_name;
             name=(char *)sn_addr;
@@ -210,7 +210,7 @@ void load_elf_sections(Binary *elf,uint64_t *sh_info){
             sc_addr=sh32->sh_offset+(uintptr_t)mem;
             flags=sh32->sh_flags;
             break;
-        case BIN_TYPE_ELF64:
+        case BIN_FORMAT_ELF64:
             E64_sh *sh64=(E64_sh*)sh_addr;
             sn_addr=shstrtab_addr+sh64->sh_name;
             name=(char *)sn_addr;
@@ -253,9 +253,9 @@ void load_elf(Binary *elf){
     uint64_t sh_info[4];
     /*  program headers [offset,size,num]  */
     uint64_t ph_info[3];
-    switch (elf->bin_type)
+    switch (elf->bin_format)
     {
-    case BIN_TYPE_ELF32:
+    case BIN_FORMAT_ELF32:
         E32_fh *elf32_fh=elf->hd->Fileheader.e32fh;
         /*  section header information  */
         sh_info[0]=elf32_fh->e_shoff;
@@ -267,7 +267,7 @@ void load_elf(Binary *elf){
         ph_info[1]=elf32_fh->e_phentsize;
         ph_info[2]=elf32_fh->e_phnum;
         break;
-    case BIN_TYPE_ELF64:
+    case BIN_FORMAT_ELF64:
         E64_fh *elf64_fh=elf->hd->Fileheader.e64fh;
         /*  section header information  */
         sh_info[0]=elf64_fh->e_shoff;
@@ -355,8 +355,32 @@ void load_pe(Binary *pe){
     load_pe_symbols(pe,mem);
 }
 
+void load_info_type(Binary *bin,uint64_t type){
+    switch(bin->bin_format)
+    {
+    case BIN_FORMAT_PE:
+        if(type & IMAGE_FILE_EXECUTABLE_IMAGE)
+            bin->bin_type=BIN_TYPE_EXEC;
+        else if(type & IMAGE_FILE_DLL)
+            bin->bin_type=BIN_TYPE_DYN;
+        else 
+            bin->bin_type=BIN_TYPE_UNKNOWN;
+        break;
+    case BIN_FORMAT_ELF32:case BIN_FORMAT_ELF64:
+        if(type == ET_EXEC || type == ET_REL)
+            bin->bin_type=BIN_TYPE_EXEC;
+        else if(type == ET_DYN)
+            bin->bin_type=BIN_TYPE_DYN;
+        else 
+            bin->bin_type=BIN_TYPE_UNKNOWN;
+        break;
+    }
+}
+
 void load_info_arch(Binary *bin,uint64_t machine){
-    if(bin->bin_type == BIN_TYPE_PE)
+    switch(bin->bin_format)
+    {
+    case BIN_FORMAT_PE:
         switch(machine)
         {
         case IMAGE_FILE_MACHINE_I386:
@@ -371,7 +395,7 @@ void load_info_arch(Binary *bin,uint64_t machine){
         default:
             bin->bin_arch=ARCH_UNKNOWN;
         }
-    else if(bin->bin_type == BIN_TYPE_ELF32 || bin->bin_type == BIN_TYPE_ELF64)
+    case BIN_FORMAT_ELF32:case BIN_FORMAT_ELF64:
         switch(machine)
         {
         case EM_386:
@@ -383,6 +407,7 @@ void load_info_arch(Binary *bin,uint64_t machine){
         default:
             bin->bin_arch=ARCH_UNKNOWN;
         }
+    }
 }
 
 void load_info(Binary *bin){
@@ -391,11 +416,11 @@ void load_info(Binary *bin){
     uint16_t *mz=(uint16_t*)mem;
     uint32_t *elf=(uint32_t*)mem;
     /*  elf class uint8  */
-    uintptr_t elfclass_addr=(uintptr_t)mem+sizeof(uint32_t);
+    uintptr_t elfclass_addr=(uintptr_t)mem+ELF_CLASS_INDEX;
     uint8_t *elfclass=(uint8_t*)elfclass_addr;
     Header *hd=NULL;
     if(*mz == MZ_MAGIC){
-        bin->bin_type=BIN_TYPE_PE;
+        bin->bin_format=BIN_FORMAT_PE;
         hd=MALLOC(1,Header);
         /*  MZ file header loaded */
         hd->Fileheader.mzfh=MALLOC(1,MZ_fh);
@@ -407,6 +432,8 @@ void load_info(Binary *bin){
         PE_fh *peh=hd->Pxheader.peh;
         *peh=*(PE_fh*)peh_addr;
         load_info_arch(bin,peh->machine);
+        load_info_type(bin,peh->flags);
+        /*  DLL has entry   */
         if(peh->opt_hdr_size > 0){
             /*  pe entry addr */
             uintptr_t pe_entry_addr=peh_addr+sizeof(PE_fh)+PE_ENTRY_OFFSET;
@@ -415,26 +442,32 @@ void load_info(Binary *bin){
         else bin->entry=0;
     }
     else if(*elf == ELF_MAGIC && *elfclass == E32_flag){
-        bin->bin_type=BIN_TYPE_ELF32;
+        bin->bin_format=BIN_FORMAT_ELF32;
         hd=MALLOC(1,Header);
         /*  ELF file header loaded  */
         hd->Fileheader.e32fh=MALLOC(1,E32_fh);
         E32_fh *e32fh=hd->Fileheader.e32fh;
         *e32fh=*(E32_fh*)mem;
         load_info_arch(bin,e32fh->e_machine);
-        bin->entry=e32fh->e_entry;
+        load_info_type(bin,e32fh->e_type);
+        /*  DSO do not have entry    */
+        if(bin->bin_type == BIN_TYPE_EXEC)
+            bin->entry=e32fh->e_entry;
     }
     else if(*elf == ELF_MAGIC && *elfclass == E64_flag){
-        bin->bin_type=BIN_TYPE_ELF64;
+        bin->bin_format=BIN_FORMAT_ELF64;
         hd=MALLOC(1,Header);
         /*  ELF file header loaded  */
         hd->Fileheader.e64fh=MALLOC(1,E64_fh);
         E64_fh *e64fh=hd->Fileheader.e64fh;
         *e64fh=*(E64_fh*)mem;
         load_info_arch(bin,e64fh->e_machine);
-        bin->entry=e64fh->e_entry;
+        load_info_type(bin,e64fh->e_type);
+        /*  DSO do not have entry    */
+        if(bin->bin_type == BIN_TYPE_EXEC)
+            bin->entry=e64fh->e_entry;
     }
-    else bin->bin_type=BIN_TYPE_UNKNOWN;
+    else bin->bin_format=BIN_FORMAT_UNKNOWN;
     /*  Header  loaded  */
     bin->hd=hd;
 }
@@ -456,24 +489,26 @@ Binary *load_binary(char *fn){
     if(file_mem == MAP_FAILED) LDR_ERROR2(fn,"mmap failed.");
     /*  Binary init */
     Binary *bin=MALLOC(1,Binary);
+    memset(bin,0,sizeof(Binary));
     bin->mem=file_mem;
     bin->bin_size=file_size;
     bin->bin_name=file_name;
     load_info(bin);
     if(bin->bin_type < 0) LDR_ERROR2(fn,"unsupported binary type.");
+    if(bin->bin_format < 0) LDR_ERROR2(fn,"unsupported binary format.");
     if(bin->bin_arch < 0) LDR_ERROR2(fn,"unsupported architecture.");
-    if(bin->entry ==0 ) LDR_ERROR1(fn,"cannot find entry point.");
+    if(bin->entry == 0 && bin->bin_type == BIN_TYPE_EXEC) LDR_ERROR1(fn,"cannot find entry point.");
     bin->sect=NULL;
     bin->sym=NULL;
-    switch (bin->bin_type)
+    switch (bin->bin_format)
     {
-    case BIN_TYPE_ELF32:
+    case BIN_FORMAT_ELF32:
         load_elf(bin);
         break;
-    case BIN_TYPE_ELF64:
+    case BIN_FORMAT_ELF64:
         load_elf(bin);
         break;
-    case BIN_TYPE_PE:
+    case BIN_FORMAT_PE:
         load_pe(bin);
         break;
     }

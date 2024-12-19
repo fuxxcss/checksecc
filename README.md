@@ -3,13 +3,15 @@
 * [Introduction](#introduction)
 * [How to Install ?](#install)
 * [How to Use ?](#check-one-elf-file)
-      * [Check File](#check-one-elf-file)
-      * [Check Kernel](#check-the-kernel)
-      * [Check Process](#check-one-process)
+   * [Check File](#check-one-elf-file)
+   * [Check Kernel](#check-the-kernel)
+   * [Check Process](#check-one-process)
 * [Version](#version-information)
 * [ToDo]()
+
 ## why
-checksec.sh is a linux specified gadget,because it used Shell and readelf. If you need to check something in other place, maybe you need checksecc.
+checksec.sh is a linux specified gadget,because it used Shell and readelf. If you need to check pe, elf in other place, maybe you need checksecc.
+
 ## introduction
 The checksecc is a c rewrite of checksec and has some highlights. It retains all the core functionality of checksec,you can operate on it just like the original.we removed some uncommon features and added some useful features.
 ``` shell
@@ -35,8 +37,8 @@ Usage: checkc [--format={cli,csv,xml,json}] [OPTION]
 
 For more information, see:
 https://github.com/fuxxcss/checksecc
-
 ```
+
 ## install 
 install checksecc by source:
 ``` shell
@@ -47,6 +49,7 @@ if you need to update , make clean first
 ``` shell
 make clean
 ```
+
 ## check one elf file
 For example , we compile one file with gcc features.
 ``` shell
@@ -97,6 +100,7 @@ Fortified                   __vsprintf_chk Fortified
 Fortified                   __snprintf_chk Fortified
 Fortified                   __vsnprintf_chk Fortified
 ```
+
 ## check file list
 We need delim * to check file list
 ``` shell
@@ -119,6 +123,7 @@ RPATH                       NO RPATH
 RUNPATH                     NO RUNPATH
 Stripped                    Stripped
 ```
+
 ## check the kernel
 For example , we check Linux debian 5.10.0-20-amd64.
 ``` shell
@@ -134,6 +139,7 @@ Slab Freelist Random        Enabled
 SMAP                        Enabled
 PTI                         Enabled
 ```
+
 ## check one process
 we focus on selinux and seccomp.
 ``` shell
@@ -152,6 +158,7 @@ RPATH                       NO RPATH
 RUNPATH                     NO RUNPATH
 Stripped                    Stripped
 ```
+
 ## version information
 ``` shell
 > checkc --version
@@ -159,12 +166,13 @@ checksecc v0.1,fuxxcss
 https://github.com/fuxxcss/checksecc
 
 ```
+
 ## ToDo
 ``` shell
-other install ways
+other install ways: publish package
 pe check
 windows check
-fix some error: /lib64 、 DSO has no entrypoint
+fix some error: centos /lib64 error
 ```
 
 

@@ -43,8 +43,8 @@ char *chk_elf_relro(Binary *elf){
     }
     if(!dynamic) CHK_ERROR4("dynamic section not found.");
     /*  search BIND_NOW falg    */
-    switch (elf->bin_type){
-        case BIN_TYPE_ELF32:
+    switch (elf->bin_format){
+        case BIN_FORMAT_ELF32:
             uint16_t dyn32_num=dynamic->sect_size/sizeof(E32_dyn);
             for(uint16_t num=0;num < dyn32_num;num++){
                 uintptr_t dyn32_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E32_dyn);
@@ -56,7 +56,7 @@ char *chk_elf_relro(Binary *elf){
                         full=true;
             }
             break;
-        case BIN_TYPE_ELF64:
+        case BIN_FORMAT_ELF64:
             uint16_t dyn64_num=dynamic->sect_size/sizeof(E64_dyn);
             for(uint16_t num=0;num < dyn64_num;num++){
                 uintptr_t dyn64_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E64_dyn);
@@ -131,11 +131,11 @@ char *chk_elf_pie(Binary *elf){
     if(aslr == 0) CHK_ERROR4("Check ASLR failed");
     if(aslr == 48) return "\033[31mASLR LEVEL 0\033[m";
     uint32_t type;
-    switch(elf->bin_type){
-        case BIN_TYPE_ELF32:
+    switch(elf->bin_format){
+        case BIN_FORMAT_ELF32:
             type=elf->hd->Fileheader.e32fh->e_type;
             break;
-        case BIN_TYPE_ELF64:
+        case BIN_FORMAT_ELF64:
             type=elf->hd->Fileheader.e64fh->e_type;
     }
     switch(type){
@@ -163,8 +163,8 @@ char *chk_elf_pie(Binary *elf){
     }
     if(!dynamic) CHK_ERROR4("dynamic section not found.");
     /*  search DEBUG    */
-    switch (elf->bin_type){
-        case BIN_TYPE_ELF32:
+    switch (elf->bin_format){
+        case BIN_FORMAT_ELF32:
             uint16_t dyn32_num=dynamic->sect_size/sizeof(E32_dyn);
             for(uint16_t num=0;num < dyn32_num;num++){
                 uintptr_t dyn32_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E32_dyn);
@@ -173,7 +173,7 @@ char *chk_elf_pie(Binary *elf){
                 if(dyn32->d_tag == DT_DEBUG) debug=true;
             }
             break;
-        case BIN_TYPE_ELF64:
+        case BIN_FORMAT_ELF64:
             uint16_t dyn64_num=dynamic->sect_size/sizeof(E64_dyn);
             for(uint16_t num=0;num < dyn64_num;num++){
                 uintptr_t dyn64_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E64_dyn);
@@ -201,8 +201,8 @@ char *chk_elf_rpath(Binary *elf){
     if(!dynamic) CHK_ERROR4("dynamic section not found.");
     bool rpath=false;
     /*  search RPATH    */
-    switch (elf->bin_type){
-        case BIN_TYPE_ELF32:
+    switch (elf->bin_format){
+        case BIN_FORMAT_ELF32:
             uint16_t dyn32_num=dynamic->sect_size/sizeof(E32_dyn);
             for(uint16_t num=0;num < dyn32_num;num++){
                 uintptr_t dyn32_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E32_dyn);
@@ -211,7 +211,7 @@ char *chk_elf_rpath(Binary *elf){
                 if(dyn32->d_tag == DT_RPATH) rpath=true;
             }
             break;
-        case BIN_TYPE_ELF64:
+        case BIN_FORMAT_ELF64:
             uint16_t dyn64_num=dynamic->sect_size/sizeof(E64_dyn);
             for(uint16_t num=0;num < dyn64_num;num++){
                 uintptr_t dyn64_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E64_dyn);
@@ -239,8 +239,8 @@ char *chk_elf_runpath(Binary *elf){
     if(!dynamic) CHK_ERROR4("dynamic section not found.");
     bool runpath=false;
     /*  search RUNPATH    */
-    switch (elf->bin_type){
-        case BIN_TYPE_ELF32:
+    switch (elf->bin_format){
+        case BIN_FORMAT_ELF32:
             uint16_t dyn32_num=dynamic->sect_size/sizeof(E32_dyn);
             for(uint16_t num=0;num < dyn32_num;num++){
                 uintptr_t dyn32_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E32_dyn);
@@ -249,7 +249,7 @@ char *chk_elf_runpath(Binary *elf){
                 if(dyn32->d_tag == DT_RUNPATH) runpath=true;
             }
             break;
-        case BIN_TYPE_ELF64:
+        case BIN_FORMAT_ELF64:
             uint16_t dyn64_num=dynamic->sect_size/sizeof(E64_dyn);
             for(uint16_t num=0;num < dyn64_num;num++){
                 uintptr_t dyn64_addr=(uintptr_t)sect->sect_bytes+num*sizeof(E64_dyn);
@@ -410,8 +410,8 @@ chk_info *chk_elf_fortified(Binary *elf){
     uint64_t offset,addr;
     char *libc_str="libc.so";
     size_t libc_str_len=strlen(libc_str);
-    switch (elf->bin_type){
-        case BIN_TYPE_ELF32:
+    switch (elf->bin_format){
+        case BIN_FORMAT_ELF32:
             uint16_t dyn32_num=dynamic->sect_size/sizeof(E32_dyn);
             for(uint16_t num=0;num < dyn32_num;num++){
                 uintptr_t dyn32_addr=(uintptr_t)dynamic->sect_bytes+num*sizeof(E32_dyn);
@@ -426,7 +426,7 @@ chk_info *chk_elf_fortified(Binary *elf){
                 }
             }
             break;
-        case BIN_TYPE_ELF64:
+        case BIN_FORMAT_ELF64:
             uint16_t dyn64_num=dynamic->sect_size/sizeof(E64_dyn);
             for(uint16_t num=0;num < dyn64_num;num++){
                 uintptr_t dyn64_addr=(uintptr_t)dynamic->sect_bytes+num*sizeof(E64_dyn);
@@ -614,13 +614,13 @@ void chk_file_one_pe(Binary *pe){
 
 chk_info *chk_file_one(Binary *bin){
     /*  elf or pe   */
-    switch (bin->bin_type)
+    switch (bin->bin_format)
     {
-    case BIN_TYPE_ELF32:
+    case BIN_FORMAT_ELF32:
         return chk_file_one_elf(bin);
-    case BIN_TYPE_ELF64:
+    case BIN_FORMAT_ELF64:
         return chk_file_one_elf(bin);
-    case BIN_TYPE_PE:
+    case BIN_FORMAT_PE:
         chk_file_one_pe(bin);
         return NULL;
     }
