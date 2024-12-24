@@ -15,6 +15,8 @@
 #define CHK_PROC_NUM 2
 /*  kernel check functions    */
 #define CHK_KERN_NUM 9
+/*  lib path   */
+#define CHK_LIB_PATH_NUM 3
 /*  libc path ,up to bin_arch  */
 #define CHK_LIBC_PATH_NUM 3
 /*  hashmap size    */

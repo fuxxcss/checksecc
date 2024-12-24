@@ -7,6 +7,9 @@
 #include"types.h"
 #include"loader.h"
 
+/*  global flag */
+extern bool DEBUG;
+
 /*
  *  linux on x86
  */

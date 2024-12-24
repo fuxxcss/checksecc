@@ -11,6 +11,7 @@
 
 /*  global flag */
 extern bool EXTENTED;
+extern bool DEBUG;
 
 /*  elf name    */
 char *chk_elf_name(Binary *elf){
@@ -442,16 +443,32 @@ chk_info *chk_elf_fortified(Binary *elf){
             }
     }
     if(!libc_version) CHK_ERROR4("libc and libstdc++ are not used.");
+    /*  lib path    */
+    char *lib_path[CHK_LIB_PATH_NUM]={
+        "/lib",
+        "/lib64",
+        "/lib32"
+    };
     /*  load libc version, indexing by bin_arch*/
     char *arch_path[CHK_LIBC_PATH_NUM]={
         /*  ARCH_X86 = 0    */
-        "/lib/i386-linux-gnu/",
-        "/lib/x86_64-linux-gnu/",
-        "/lib/aarch64-linux-gnu/"
+        "i386-linux-gnu/",
+        "x86_64-linux-gnu/",
+        "aarch64-linux-gnu/"
     };
-    char *libc_path=str_append(arch_path[elf->bin_arch],libc_version);
-    /*  load libc   */
-    Binary *libc=load_binary(libc_path);
+    char *libc_path=NULL;
+    Binary *libc=NULL;
+    /*  append libc_path   */
+    for(int num=0;num <CHK_LIB_PATH_NUM ;num++){
+        libc_path=str_append(lib_path[num],arch_path[elf->bin_arch]);
+        libc_path=str_append(libc_path,libc_version);
+        /*  ignore DEBUG flag   */
+        DEBUG=false;
+        /*  load libc   */
+        libc=load_binary(libc_path);
+        if(libc) break;
+    }
+    if(!libc) CHK_ERROR4("libc and libstdc++ are not found.");
     /*  keep fortify source funcs in hashmap and count it */
     hashmap *hm=MALLOC(HASHMAP_SIZE,hashmap);
     size_t fortify_count=0;
@@ -503,18 +520,6 @@ chk_info *chk_elf_fortified(Binary *elf){
                     info=new;
                 }
             }
-            /*  fortifiable  
-            else if(strncmp(hm_tmp->_str+strlen(prefix),elf_func_str,elf_func_len)==0){
-                if(!hm_tmp->_hit){
-                    hm_tmp->_hit=true;
-                    chk_info *new=MALLOC(1,chk_info);
-                    new->chk_type=type;;
-                    new->chk_result=str_append(elf_func_str," \033[31mFortifiable\033[m");
-                    info->chk_next=new;
-                    info=new;
-                }
-            }
-            */
             hm_tmp=hm_tmp->_next;
         }
         elf_sym=elf_sym->sym_next;

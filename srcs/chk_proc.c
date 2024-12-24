@@ -7,7 +7,8 @@
 #include"types.h"
 #include"loader.h"
 
-// TODO multi-thread check procs
+/*  global flag */
+extern bool DEBUG;
 
 // check Seccomp mode
 char *chk_linux_proc_seccomp(char *path){
@@ -113,14 +114,17 @@ void chk_proc(char *option,chk_proc_option cpo){
         break;
     case cpo_all:
         if((dir=opendir("/proc")) == NULL) CHK_ERROR1("/proc is not exist or not accessible");
-        /*  check all procs   */
+        /*  real-time check */
+        /*
         struct dirent *file;
         while((file=readdir(dir))!=NULL){
             if(file->d_name == "." || file->d_name == "..") continue;
             if(file->d_name[0] >= '1'&& file->d_name[0] <='9')
                 chk_proc(file->d_name,cpo_id);
         }
+        
         break;
+        */
     }
     if(dir) closedir(dir);
 }

@@ -7,7 +7,7 @@
    * [Check Kernel](#check-the-kernel)
    * [Check Process](#check-one-process)
 * [Version](#version-information)
-* [ToDo]()
+* [ToDo](#todo)
 
 ## why
 checksec.sh is a linux specified gadget,because it used Shell and readelf. If you need to check pe, elf in other place, maybe you need checksecc.
@@ -26,8 +26,6 @@ Usage: checkc [--format={cli,csv,xml,json}] [OPTION]
       --proc-all
       --proc-id={process ID}
       --kernel[=kconfig]
-      --remote={ip:port}
-      --remote-rev={port}
       --version
       --help
 
@@ -172,7 +170,8 @@ https://github.com/fuxxcss/checksecc
 other install ways: publish package
 pe check
 windows check
-fix some error: centos /lib64 error
+fix some error: 
+proc all ,real-time check
 ```
 
 

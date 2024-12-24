@@ -54,12 +54,14 @@ static uint8_t chk_mode;
 
 /*  extern format.c  */
 extern bool EXTENTED;
+extern bool DEBUG;
 extern output OUTPUT;
 extern strlink sl;
 
 /*  parse args  */
 static void parse_args(int *pargc,char ***pargv){
     /*  default global flag */
+    DEBUG=true;
     EXTENTED=false;
     OUTPUT=cli;
     /*  init strlink    */

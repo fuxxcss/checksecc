@@ -8,14 +8,17 @@
 
 /*  expection handle    */
 #define LDR_ERROR1(info1,info2) \
+    if(DEBUG)\
     printf("LDR ERROR:%s %s\n",info1,info2) \
 
 #define LDR_ERROR2(info1,info2) {\
+    if(DEBUG)\
     printf("LDR ERROR:%s %s\n",info1,info2); \
     return NULL;\
 }
 
 #define LDR_ERROR3(info1,info2) {\
+    if(DEBUG)\
     printf("LDR ERROR:%s %s\n",info1,info2); \
     return;\
 }

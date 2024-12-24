@@ -6,6 +6,10 @@
 #include<sys/stat.h>
 #include<fcntl.h>
 #include"loader.h"
+#include"types.h"
+
+/*  global flag */
+extern bool DEBUG;
 
 ph_type load_elf_programh_types(uint64_t flags){
     switch (flags){

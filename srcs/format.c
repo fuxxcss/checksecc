@@ -6,6 +6,7 @@
 
 /*  global flag   */
 bool EXTENTED;
+bool DEBUG;
 output OUTPUT;
 
 /*  global str link */
@@ -115,6 +116,7 @@ char *str_append(char *des,char *src){
     return append;
 }
 
+/*  free string by strlink  */
 void free_str(){
     strlink *next=sl._next;
     while(next){
