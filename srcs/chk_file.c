@@ -23,7 +23,7 @@ char *chk_elf_relro(Binary *elf){
     bool relro=false;
     bool full=false;
     /*  search program header   */
-    Programh *ph=elf->hd->Pxheader.ph->ph_next;
+    Programh *ph=elf->hd->View.ph->ph_next;
     while(ph){
         /*  segment type == GNU_RELRO*/
         if(ph->sgm_type == PH_GNU_RELRO){
@@ -105,7 +105,7 @@ char *chk_elf_nx(Binary *elf){
     bool rwx=false;
     /*  search program header   */
     Programh *gnu_stack=NULL;
-    Programh *ph=elf->hd->Pxheader.ph->ph_next;
+    Programh *ph=elf->hd->View.ph->ph_next;
     while(ph){
         /*  segment type == GNU_STACK*/
         if(ph->sgm_type == PH_GNU_STACK){

@@ -50,6 +50,7 @@ typedef Elf64_Dyn E64_dyn;
 typedef struct mz_hdr MZ_fh;
 typedef struct pe_hdr PE_fh;
 typedef struct section_header PE_sh;
+typedef struct data_directory DD;
 
 /*  enum type   */
 typedef enum {
@@ -112,6 +113,11 @@ typedef struct Section{
     struct Section *sect_next;
 }Section;
 
+typedef struct {
+    MZ_fh *mz_fh;
+    PE_fh *pe_fh;
+}Winfh;
+
 typedef struct Programh{
     /*  segments type   */
     ph_type sgm_type;
@@ -126,16 +132,17 @@ typedef struct Programh{
 typedef struct Header{
     /*  file header */
     union{
+        /*  elf file header */
         E32_fh *e32fh;
         E64_fh *e64fh;
-        MZ_fh *mzfh;
+        /*  win file header  */
+        Winfh *winfh;
     }Fileheader;
-    /*  program header/pecoff header  */
+    /*  loading view  */
     union{
         Programh *ph;
-        PE_fh *peh;
-    }Pxheader;
-
+        DD *dd;
+    }View;
 }Header;
 
 typedef struct Binary{
@@ -160,19 +167,5 @@ typedef struct Binary{
     /*  binary headers */
     Header *hd;
 }Binary;
-
-/*  load binary */
-Binary *load_binary(char *fn);
-
-/*  load symbols, sections  */
-void load_symbols(Binary *bin);
-void load_info(Binary *bin);
-void load_sections(Binary *bin,uint64_t *sh_info);
-void load_programhs(Binary *bin);
-void load_programhs(Binary *bin);
-
-/*  show all info   */
-void show_symbols(Binary *bin);
-void show_sections(Binary *bin);
 
 #endif

@@ -167,11 +167,10 @@ https://github.com/fuxxcss/checksecc
 
 ## ToDo
 ``` shell
-other install ways: publish package
-pe check
-windows check
-fix some error: 
-proc all ,real-time check
+1. pe check
+2. windows check
+3. proc all ,real-time check
+4. other install ways: publish package
 ```
 
 

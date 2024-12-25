@@ -33,7 +33,7 @@ void load_elf_programhs(Binary *elf,uint64_t *ph_info){
     uintptr_t ph_addr=(uintptr_t)mem+ph_info[0];
     /*  head    */
     Programh *ph=MALLOC(1,Programh);
-    elf->hd->Pxheader.ph=ph;
+    elf->hd->View.ph=ph;
     switch (elf->bin_format){
         case BIN_FORMAT_ELF32:
             for(uint16_t ph_num=0;ph_num < ph_info[2];ph_num++){
@@ -251,7 +251,6 @@ void load_elf_sections(Binary *elf,uint64_t *sh_info){
 
 void load_elf(Binary *elf){
     void *mem=elf->mem;
-    /*  load sections   */
     /*  section headers */
     /*  uint64_t [shtb_addr,sh_num,sh_size,shstr_offset] */
     uint64_t sh_info[4];
@@ -284,7 +283,7 @@ void load_elf(Binary *elf){
         ph_info[2]=elf64_fh->e_phnum;
         break;
     }
-    /*  load headers */
+    /*  load program headers */
     load_elf_programhs(elf,ph_info);
     /*  load sections   */
     load_elf_sections(elf,sh_info);
@@ -293,7 +292,19 @@ void load_elf(Binary *elf){
     load_elf_symbols(elf);
 }
 
-void load_pe_symbols(Binary *pe,uintptr_t addr){
+void load_pe_data_directory(Binary *pe){
+    PE_fh *peh=pe->hd->Fileheader.winfh->pe_fh;
+    uintptr_t option_size=pe->hd->Fileheader.winfh->pe_fh->opt_hdr_size;
+    if(option_size > 0){
+        uintptr_t peh_addr=pe->hd->Fileheader.winfh->mz_fh->peaddr;
+        DD *dd=MALLOC(1,DD);
+        pe->hd->View.dd=dd;
+        *dd=*(DD*)(peh_addr+sizeof(PE_fh));
+    }
+    else pe->hd->View.dd=NULL;
+}
+
+void load_pe_symbols(Binary *pe){
     Symbol *sym=MALLOC(1,Symbol);
     /*  tail insert */
     /*  head    */
@@ -343,20 +354,21 @@ void load_pe_sections(Binary *pe,uintptr_t *sh_info){
 
 void load_pe(Binary *pe){
     void *mem=pe->mem;
-    /*  load sections   */
-    /*  sh_info [mem,sh_addr,sh_num]   */
-    uintptr_t sh_info[3];
-    /*  file base   */
-    sh_info[0]=(uintptr_t)mem;
-    /*  section header  addr    */
-    uintptr_t peh_addr=pe->hd->Fileheader.mzfh->peaddr;
-    uintptr_t option_size=pe->hd->Pxheader.peh->opt_hdr_size;
+    /*  section headers */
+    /*  sh_info [sh_addr,sh_num]   */
+    uintptr_t sh_info[2];
+    /*  section header addr  */
+    uintptr_t peh_addr=pe->hd->Fileheader.winfh->mz_fh->peaddr;
+    uintptr_t option_size=pe->hd->Fileheader.winfh->pe_fh->opt_hdr_size;
     sh_info[1]=sh_info[0]+sizeof(PE_fh)+peh_addr+option_size;
     /*  section num */
-    sh_info[2]=pe->hd->Pxheader.peh->sections;
+    sh_info[2]=pe->hd->Fileheader.winfh->pe_fh->sections;
+    /*  load data directory */
+    load_pe_data_directory(pe);
+    /*  load sections   */
     load_pe_sections(pe,sh_info);
     /*  load symbols    */
-    load_pe_symbols(pe,mem);
+    load_pe_symbols(pe);
 }
 
 void load_info_type(Binary *bin,uint64_t type){
@@ -426,14 +438,15 @@ void load_info(Binary *bin){
     if(*mz == MZ_MAGIC){
         bin->bin_format=BIN_FORMAT_PE;
         hd=MALLOC(1,Header);
-        /*  MZ file header loaded */
-        hd->Fileheader.mzfh=MALLOC(1,MZ_fh);
-        MZ_fh *mzfh=hd->Fileheader.mzfh;
+        /*  load Win file header */
+        Winfh *winfh=MALLOC(1,MZ_fh);
+        hd->Fileheader.winfh=winfh;
+        /*  mz file header  */
+        MZ_fh *mzfh=winfh->mz_fh;
         *mzfh=*(MZ_fh*)mem;
-        /*  pecoff */
+        /*  pe file header */
         uintptr_t peh_addr=(uintptr_t)mem+mzfh->peaddr;
-        hd->Pxheader.peh=MALLOC(1,PE_fh);
-        PE_fh *peh=hd->Pxheader.peh;
+        PE_fh *peh=winfh->pe_fh;
         *peh=*(PE_fh*)peh_addr;
         load_info_arch(bin,peh->machine);
         load_info_type(bin,peh->flags);
@@ -548,8 +561,8 @@ void free_binary(Binary *bin){
     }
     if(bin->hd){
         /*  union maybe cause double free   */
-        if(bin->hd->Pxheader.ph->ph_next){
-            Programh *ph=bin->hd->Pxheader.ph->ph_next;
+        if(bin->hd->View.ph->ph_next){
+            Programh *ph=bin->hd->View.ph->ph_next;
             while(ph){
                 Programh *tmp=ph;
                 ph=ph->ph_next;
@@ -557,7 +570,7 @@ void free_binary(Binary *bin){
             }
         }
         /*  ph and peh use same pointer */
-        free(bin->hd->Pxheader.ph);
+        free(bin->hd->View.ph);
         /*  e32fh e64fh and mzfh use same pointer */
         if(bin->hd->Fileheader.e32fh) free(bin->hd->Fileheader.e32fh);
         free(bin->hd);
