@@ -305,12 +305,7 @@ void load_pe_data_directory(Binary *pe){
 }
 
 void load_pe_symbols(Binary *pe){
-    Symbol *sym=MALLOC(1,Symbol);
-    /*  tail insert */
-    /*  head    */
-    pe->sym=sym;
-    /*  tail    */
-    sym->sym_next=NULL;
+    pe->sym=NULL;
 }
 
 void load_pe_sections(Binary *pe,uintptr_t *sh_info){
@@ -519,10 +514,7 @@ Binary *load_binary(char *fn){
     bin->sym=NULL;
     switch (bin->bin_format)
     {
-    case BIN_FORMAT_ELF32:
-        load_elf(bin);
-        break;
-    case BIN_FORMAT_ELF64:
+    case BIN_FORMAT_ELF32:case BIN_FORMAT_ELF64:
         load_elf(bin);
         break;
     case BIN_FORMAT_PE:

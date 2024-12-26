@@ -613,17 +613,75 @@ chk_info *chk_file_one_elf(Binary *elf){
     return head;
 }
 
+/*  pe name    */
+char *chk_pe_name(Binary *pe){
+    return pe->bin_name;
+}
+
 void chk_file_one_pe(Binary *pe){
-    return;
+    /*  We have 8 basic check functions */
+    char *(*chk_basic_func[CHK_BAS_NUM])(Binary*)={
+        chk_elf_name,
+        chk_elf_relro,
+        chk_elf_stack_canary,
+        chk_elf_nx,
+        chk_elf_pie,
+        chk_elf_rpath,
+        chk_elf_runpath,
+        chk_elf_stripped,
+    };
+    char *chk_basic_array[CHK_BAS_NUM]={
+        "File",
+        "RELRO",
+        "STACK CANARY",
+        "NX",
+        "PIE",
+        "RPATH",
+        "RUNPATH",
+        "Stripped",
+    };
+    /*  current   */
+    chk_info *elf_info=MALLOC(1,chk_info);\
+    /*  head    */
+    chk_info *head=elf_info;
+    for(int num=0;num < CHK_BAS_NUM;num++){
+        chk_info *new=MALLOC(1,chk_info);
+        new->chk_type=chk_basic_array[num];
+        char *result=chk_basic_func[num](elf);
+        /*  null handler   */
+        if(!result) new->chk_result="NULL";
+        else new->chk_result=result;
+        elf_info->chk_next=new;
+        elf_info=new;
+    }
+    if(EXTENTED){
+        /*  We have 2 extented check functions  */
+        chk_info *(*chk_extented_func[CHK_EXT_NUM])(Binary*)={
+            chk_elf_sanitized,
+            chk_elf_fortified
+        };
+        for(int num=0;num < CHK_EXT_NUM;num++){
+            chk_info *result=chk_extented_func[num](elf);
+            chk_info *tmp=result;
+            elf_info->chk_next=result->chk_next;
+            /*  find the tail   */
+            while(result->chk_next) result=result->chk_next;
+            elf_info=result;
+            /*  free fortify/sanitize's head */
+            free(tmp);
+        }
+    }
+    /*  tail    */
+    elf_info->chk_next=NULL;
+    /*  chk_info head   */
+    return head;
 }
 
 chk_info *chk_file_one(Binary *bin){
     /*  elf or pe   */
     switch (bin->bin_format)
     {
-    case BIN_FORMAT_ELF32:
-        return chk_file_one_elf(bin);
-    case BIN_FORMAT_ELF64:
+    case BIN_FORMAT_ELF32:case BIN_FORMAT_ELF64:
         return chk_file_one_elf(bin);
     case BIN_FORMAT_PE:
         chk_file_one_pe(bin);
