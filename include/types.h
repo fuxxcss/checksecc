@@ -3,18 +3,26 @@
 
 /*  macro constant  */
 
-/*  basic check functions   */
-#define CHK_BAS_NUM 8
-/*  extented check functions    */
-#define CHK_EXT_NUM 2
+/*  basic elf check functions   */
+#define CHK_ELF_BAS_NUM 8
+/*  extented elf check functions    */
+#define CHK_ELF_EXT_NUM 2
 /*  sanitized num   */
 #define CHK_SAN_NUM 7
 /*  ibt and shadow-stack    */
 #define CHK_CET_NUM 2
+
+/*  basic pe check functions   */
+#define CHK_PE_BAS_NUM 8
+/*  extented elf check functions    */
+#define CHK_PE_EXT_NUM 2
+
 /*  proc check functions    */
 #define CHK_PROC_NUM 2
+
 /*  kernel check functions    */
 #define CHK_KERN_NUM 9
+
 /*  lib path   */
 #define CHK_LIB_PATH_NUM 3
 /*  libc path ,up to bin_arch  */

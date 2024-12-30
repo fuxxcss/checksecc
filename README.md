@@ -167,10 +167,12 @@ https://github.com/fuxxcss/checksecc
 
 ## ToDo
 ``` shell
-1. pe check
-2. windows check
-3. proc all ,real-time check
-4. other install ways: publish package
+1. `pe` check
+2. `windows` check
+3. `omit frame pointer` check
+4. `arm64 aarch64` check
+5. `proc all` real-time check
+6. other install ways: publish package
 ```
 
 
