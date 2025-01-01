@@ -13,7 +13,7 @@
 #define CHK_CET_NUM 2
 
 /*  basic pe check functions   */
-#define CHK_PE_BAS_NUM 8
+#define CHK_PE_BAS_NUM 7
 /*  extented elf check functions    */
 #define CHK_PE_EXT_NUM 2
 

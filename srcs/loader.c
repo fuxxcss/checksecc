@@ -305,6 +305,7 @@ void load_pe_data_directory(Binary *pe){
 }
 
 void load_pe_symbols(Binary *pe){
+    /* todo */
     pe->sym=NULL;
 }
 

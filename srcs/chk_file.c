@@ -577,7 +577,7 @@ chk_info *chk_file_one_elf(Binary *elf){
         "Stripped",
     };
     /*  current   */
-    chk_info *elf_info=MALLOC(1,chk_info);\
+    chk_info *elf_info=MALLOC(1,chk_info);
     /*  head    */
     chk_info *head=elf_info;
     for(int num=0;num < CHK_ELF_BAS_NUM;num++){
@@ -618,77 +618,66 @@ char *chk_pe_name(Binary *pe){
     return pe->bin_name;
 }
 
+/*  check /delay:nobind */
+char *chk_pe_iat_bind(Binary *pe){
+    /*IAT Bind (/delay:nobind) like relro,but no partial*/
+}
+
+/*  check /gs   */
+char *chk_pe_gs(Binary *pe);
+/*  check /nxcompat */
+char *chk_pe_dep(Binary *pe);
+/*  check /dynamicbase  */
+char *chk_pe_dynamic_base(Binary *pe);
+/*  check /safeseh  */
+char *chk_pe_safeseh(Binary *pe);
+/*  check /cetcompat    */
+char *chk_pe_shadow_stack(Binary *pe){
+    
+}
+
+/*  check /guard:xxx  */
+chk_info *chk_pe_guard(Binary *pe){
+    /*
+    rip sign (/guard:signret) only arm64
+    eh protect (/guard:ehcont) only x64
+    cf protect (/guard:cf)
+    */
+}
+/*  check /fsanitize=xxx    */
+chk_info *chk_pe_sanitized(Binary *pe){
+    /*asan address、fuzzer (/fsanitize=address fuzzer)*/
+}
+
 // VS 2022 MSVC properties
 void chk_file_one_pe(Binary *pe){
-    /*
-    basic:
-        IAT Bind (/delay:nobind) like relro,but no partial
-        GS (/gs)
-        DEP (/nxcompat)
-        random base (/dynamicbase)
-        safeseh (/safeseh)
-        cet shadow stack (/cetcompat)
-    extended:
-        rip sign (/guard:signret) only arm64
-        eh protect (/guard:ehcont) only x64
-        cf protect (/guard:cf)
-        asan address、fuzzer (/fsanitize=address fuzzer)
-
-    ASLR:
-        /DYNAMICBASE with stripped relocation entries edge-case
-        /HIGHENTROPYVA for 64-bit systems
-    Code integrity/signing:
-        /INTEGRITYCHECK
-        Authenticode-signed with a valid (trusted, active) certificate (currently unsupported on Linux)
-    DEP (a.k.a. W^X, NX)
-    Manifest isolation via (/ALLOWISOLATION)
-    Structured Exception Handling and SafeSEH support
-    Control Flow Guard and Return Flow Guard instrumentation
-    Stack cookie (/GS) support
-    Dynamic Base    : "Present"
-ASLR            : "Present"
-High Entropy VA : "Present"
-Force Integrity : "NotPresent"
-Isolation       : "Present"
-NX              : "Present"
-SEH             : "Present"
-CFG             : "NotPresent"
-RFG             : "NotPresent"
-SafeSEH         : "NotApplicable"
-GS              : "Present"
-Authenticode    : "NotPresent"
-.NET            : "NotPresent"
-*/
-
-    /*  We have 8 basic check functions */
-    char *(*chk_basic_func[CHK_BAS_NUM])(Binary*)={
-        chk_elf_name,
-        chk_elf_relro,
-        chk_elf_stack_canary,
-        chk_elf_nx,
-        chk_elf_pie,
-        chk_elf_rpath,
-        chk_elf_runpath,
-        chk_elf_stripped,
+    /*  We have 7 basic check functions */
+    char *(*chk_basic_func[CHK_PE_BAS_NUM])(Binary*)={
+        chk_pe_name,
+        chk_pe_iat_bind,
+        chk_pe_gs,
+        chk_pe_dep,
+        chk_pe_dynamic_base,
+        chk_pe_safeseh,
+        chk_pe_shadow_stack,
     };
-    char *chk_basic_array[CHK_BAS_NUM]={
+    char *chk_basic_array[CHK_PE_BAS_NUM]={
         "File",
-        "RELRO",
-        "STACK CANARY",
-        "NX",
-        "PIE",
-        "RPATH",
-        "RUNPATH",
-        "Stripped",
+        "IAT Bind",
+        "GS",
+        "DEP",
+        "Dynamic Base",
+        "SafeSEH",
+        "CET Shadow Stack",
     };
     /*  current   */
-    chk_info *elf_info=MALLOC(1,chk_info);\
+    chk_info *elf_info=MALLOC(1,chk_info);
     /*  head    */
     chk_info *head=elf_info;
-    for(int num=0;num < CHK_BAS_NUM;num++){
+    for(int num=0;num < CHK_PE_BAS_NUM;num++){
         chk_info *new=MALLOC(1,chk_info);
         new->chk_type=chk_basic_array[num];
-        char *result=chk_basic_func[num](elf);
+        char *result=chk_basic_func[num](pe);
         /*  null handler   */
         if(!result) new->chk_result="NULL";
         else new->chk_result=result;
@@ -697,12 +686,12 @@ Authenticode    : "NotPresent"
     }
     if(EXTENTED){
         /*  We have 2 extented check functions  */
-        chk_info *(*chk_extented_func[CHK_EXT_NUM])(Binary*)={
-            chk_elf_sanitized,
-            chk_elf_fortified
+        chk_info *(*chk_extented_func[CHK_PE_EXT_NUM])(Binary*)={
+            chk_pe_guard,
+            chk_pe_sanitized,
         };
-        for(int num=0;num < CHK_EXT_NUM;num++){
-            chk_info *result=chk_extented_func[num](elf);
+        for(int num=0;num < CHK_PE_EXT_NUM;num++){
+            chk_info *result=chk_extented_func[num](pe);
             chk_info *tmp=result;
             elf_info->chk_next=result->chk_next;
             /*  find the tail   */
