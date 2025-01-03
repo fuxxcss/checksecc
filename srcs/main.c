@@ -95,12 +95,12 @@ static void parse_args(int *pargc,char ***pargv){
         case '2':
             func=CHK_FILE;
             arg=optarg;
-            chk_mode=cfo_listfile;
+            chk_mode=cfo_list;
             break;
         case '3':
             func=CHK_PROC;
             arg=optarg;
-            chk_mode=cpo_all;
+            chk_mode=cpo_list;
             break;
         case '4':
             func=CHK_PROC;

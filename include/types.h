@@ -4,7 +4,7 @@
 /*  macro constant  */
 
 /*  basic elf check functions   */
-#define CHK_ELF_BAS_NUM 8
+#define CHK_ELF_BAS_NUM 9
 /*  extented elf check functions    */
 #define CHK_ELF_EXT_NUM 2
 /*  sanitized num   */
@@ -13,7 +13,7 @@
 #define CHK_CET_NUM 2
 
 /*  basic pe check functions   */
-#define CHK_PE_BAS_NUM 7
+#define CHK_PE_BAS_NUM 8
 /*  extented elf check functions    */
 #define CHK_PE_EXT_NUM 2
 
@@ -42,12 +42,12 @@ typedef enum{
 typedef enum {
     cfo_file,
     cfo_dir,
-    cfo_listfile,
+    cfo_list,
 }chk_file_option;
 
 /*  cpo enum    */
 typedef enum {
-    cpo_all,
+    cpo_list,
     cpo_id,
 }chk_proc_option;
 

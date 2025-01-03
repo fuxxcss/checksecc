@@ -279,6 +279,9 @@ char *chk_elf_stripped(Binary *elf){
     else return "\033[31mNot Stripped\033[m";
 }
 
+char *chk_elf_frame_pointer(Binary *elf){
+    /*  push rbp / push ebp */
+}
 /*  
     check sanitized gcc/llvm
 */
@@ -565,6 +568,7 @@ chk_info *chk_file_one_elf(Binary *elf){
         chk_elf_rpath,
         chk_elf_runpath,
         chk_elf_stripped,
+        chk_elf_frame_pointer,
     };
     char *chk_basic_array[CHK_ELF_BAS_NUM]={
         "File",
@@ -575,6 +579,7 @@ chk_info *chk_file_one_elf(Binary *elf){
         "RPATH",
         "RUNPATH",
         "Stripped",
+        "Frame Pointer",
     };
     /*  current   */
     chk_info *elf_info=MALLOC(1,chk_info);
@@ -635,6 +640,9 @@ char *chk_pe_safeseh(Binary *pe);
 char *chk_pe_shadow_stack(Binary *pe){
     
 }
+char *chk_pe_frame_pointer(Binary *elf){
+    /*  push rbp / push ebp */
+}
 
 /*  check /guard:xxx  */
 chk_info *chk_pe_guard(Binary *pe){
@@ -660,6 +668,7 @@ void chk_file_one_pe(Binary *pe){
         chk_pe_dynamic_base,
         chk_pe_safeseh,
         chk_pe_shadow_stack,
+        chk_pe_frame_pointer,
     };
     char *chk_basic_array[CHK_PE_BAS_NUM]={
         "File",
@@ -669,6 +678,7 @@ void chk_file_one_pe(Binary *pe){
         "Dynamic Base",
         "SafeSEH",
         "CET Shadow Stack",
+        "Frame Pointer",
     };
     /*  current   */
     chk_info *elf_info=MALLOC(1,chk_info);
@@ -746,7 +756,7 @@ void chk_file(char *option,chk_file_option cfo){
             chk_file(file->d_name,cfo_file);
         }
         break;
-    case cfo_listfile:
+    case cfo_list:
         /*  check file list */
         char *token="*";
         char *path=strtok(option,token);

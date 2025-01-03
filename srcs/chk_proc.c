@@ -112,19 +112,16 @@ void chk_proc(char *option,chk_proc_option cpo){
         if(len < 0) CHK_ERROR2(option,"Permission denied. Requested process ID belongs to a kernel thread");
         chk_linux_proc(proc,option,exe);
         break;
-    case cpo_all:
-        if((dir=opendir("/proc")) == NULL) CHK_ERROR1("/proc is not exist or not accessible");
-        /*  real-time check */
-        /*
-        struct dirent *file;
-        while((file=readdir(dir))!=NULL){
-            if(file->d_name == "." || file->d_name == "..") continue;
-            if(file->d_name[0] >= '1'&& file->d_name[0] <='9')
-                chk_proc(file->d_name,cpo_id);
+    case cpo_list:
+        /*  check pid list */
+        char *token="*";
+        char *pid=strtok(option,token);
+        while(pid !=NULL){
+            chk_proc(pid,cpo_id);
+            CHK_PRINT3();
+            pid=strtok(NULL,token);
         }
-        
         break;
-        */
     }
     if(dir) closedir(dir);
 }

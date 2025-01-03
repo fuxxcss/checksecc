@@ -171,7 +171,7 @@ https://github.com/fuxxcss/checksecc
 2. `windows` check
 3. `omit frame pointer` check
 4. `arm64 aarch64` check
-5. `proc all` real-time check
+5. `proc list`  check
 6. other install ways: publish package
 ```
 
