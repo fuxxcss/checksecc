@@ -3,7 +3,7 @@ INCLUDE = $(HOME)/include
 LIB_PATH = $(HOME)/lib
 LIB = $(LIB_PATH)/libchkc.so
 MAIN = $(HOME)/checkc
-LIB_FLAGS = -fsanitize=address -g -I$(INCLUDE) -lssl -lcrypto
+LIB_FLAGS = -fsanitize=address -g -I$(INCLUDE) -lssl
 MAIN_FLAGS = -fsanitize=address -g -I$(INCLUDE) -lchkc 
 CC := gcc
 

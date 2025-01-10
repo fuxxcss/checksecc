@@ -498,7 +498,7 @@ Binary *load_binary(char *fn){
     if(fs < 0) LDR_ERROR2(fn,"fstat failed");
     file_size=file_stat.st_size;
     file_name=fn;
-    file_mem=mmap(NULL,file_size,PROT_READ | PROT_WRITE,MAP_PRIVATE,fd,0);
+    file_mem=mmap(NULL,file_size,PROT_READ,MAP_PRIVATE,fd,0);
     if(file_mem == MAP_FAILED) LDR_ERROR2(fn,"mmap failed.");
     /*  Binary init */
     Binary *bin=MALLOC(1,Binary);

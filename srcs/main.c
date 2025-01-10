@@ -12,8 +12,8 @@ static void help(){
       ## Checksecc Options\n\
       --file={file}\n\
       --dir={directory}\n\
-      --listfile={file list separated by *}\n\
-      --proc-all\n\
+      --file-list={file list separated by *}\n\
+      --proc-list={proc list separated by *}\n\
       --proc-id={process ID}\n\
       --kernel[=kconfig]\n\
       --version\n\
@@ -37,8 +37,8 @@ https://github.com/fuxxcss/checksecc\n\n");
 static struct option long_options[]={
     {"file",required_argument,NULL,'0'},
     {"dir",required_argument,NULL,'1'},
-    {"listfile",required_argument,NULL,'2'},
-    {"proc-all",no_argument,NULL,'3'},
+    {"file-list",required_argument,NULL,'2'},
+    {"proc-list",required_argument,NULL,'3'},
     {"proc-id",required_argument,NULL,'4'},
     {"kernel",optional_argument,NULL,'5'},
     {"version",no_argument,NULL,'v'},

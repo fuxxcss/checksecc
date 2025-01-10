@@ -462,15 +462,17 @@ chk_info *chk_elf_fortified(Binary *elf){
     char *libc_path=NULL;
     Binary *libc=NULL;
     /*  append libc_path   */
+    /*  ignore DEBUG flag   */
+    DEBUG=false;
     for(int num=0;num <CHK_LIB_PATH_NUM ;num++){
         libc_path=str_append(lib_path[num],arch_path[elf->bin_arch]);
         libc_path=str_append(libc_path,libc_version);
-        /*  ignore DEBUG flag   */
-        DEBUG=false;
         /*  load libc   */
         libc=load_binary(libc_path);
         if(libc) break;
     }
+    /*  reload DEBUG flag   */
+    DEBUG=true;
     if(!libc) CHK_ERROR4("libc and libstdc++ are not found.");
     /*  keep fortify source funcs in hashmap and count it */
     hashmap *hm=MALLOC(HASHMAP_SIZE,hashmap);
@@ -629,13 +631,13 @@ char *chk_pe_iat_bind(Binary *pe){
 }
 
 /*  check /gs   */
-char *chk_pe_gs(Binary *pe);
+char *chk_pe_gs(Binary *pe){};
 /*  check /nxcompat */
-char *chk_pe_dep(Binary *pe);
+char *chk_pe_dep(Binary *pe){};
 /*  check /dynamicbase  */
-char *chk_pe_dynamic_base(Binary *pe);
+char *chk_pe_dynamic_base(Binary *pe){};
 /*  check /safeseh  */
-char *chk_pe_safeseh(Binary *pe);
+char *chk_pe_safeseh(Binary *pe){};
 /*  check /cetcompat    */
 char *chk_pe_shadow_stack(Binary *pe){
     
