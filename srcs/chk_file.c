@@ -281,6 +281,7 @@ char *chk_elf_stripped(Binary *elf){
 
 char *chk_elf_frame_pointer(Binary *elf){
     /*  push rbp / push ebp */
+    return NULL;
 }
 /*  
     check sanitized gcc/llvm
@@ -455,9 +456,9 @@ chk_info *chk_elf_fortified(Binary *elf){
     /*  load libc version, indexing by bin_arch*/
     char *arch_path[CHK_LIBC_PATH_NUM]={
         /*  ARCH_X86 = 0    */
-        "i386-linux-gnu/",
-        "x86_64-linux-gnu/",
-        "aarch64-linux-gnu/"
+        "/i386-linux-gnu/",
+        "/x86_64-linux-gnu/",
+        "/aarch64-linux-gnu/"
     };
     char *libc_path=NULL;
     Binary *libc=NULL;
