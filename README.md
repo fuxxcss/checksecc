@@ -15,22 +15,22 @@ checksec.sh is a linux specified gadget,because it used Shell and readelf. If yo
 ## introduction
 The checksecc is a c rewrite of checksec and has some highlights. It retains all the core functionality of checksec,you can operate on it just like the original.we removed some uncommon features and added some useful features.
 ``` shell
-> checkc --help or just checkc
+> checkc -h or just checkc
 Usage: checkc [--format={cli,csv,xml,json}] [OPTION]
 
       Options:
       ## Checksecc Options
       --file={file}
       --dir={directory}
-      --listfile={file list separated by *}
-      --proc-all
+      --file-list={file list separated by *}
+      --proc-list={proc list separated by *}
       --proc-id={process ID}
       --kernel[=kconfig]
       --version
       --help
 
      ## Modifiers
-      --format={cli,csv,xml,json}have a try
+      --format={cli,csv,xml,json}
       --extended
 
 For more information, see:
@@ -159,8 +159,8 @@ Stripped                    Stripped
 
 ## version information
 ``` shell
-> checkc --version
-checksecc v0.1,fuxxcss
+> checkc -v
+checksecc v0.7,fuxxcss
 https://github.com/fuxxcss/checksecc
 
 ```

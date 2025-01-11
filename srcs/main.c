@@ -28,7 +28,7 @@ https://github.com/fuxxcss/checksecc\n\n");
 
 /*  version info    */
 static void version(){
-    printf("checksecc v0.1,fuxxcss\n\
+    printf("checksecc v0.7,fuxxcss\n\
 https://github.com/fuxxcss/checksecc\n\n");
     exit(0);
 }
