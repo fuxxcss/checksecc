@@ -5,6 +5,7 @@
 #include<stdint.h>
 #include<elf.h>
 #include"pe.h"
+#include"types.h"
 
 /*  expection handle    */
 #define LDR_ERROR1(info1,info2) \
@@ -167,5 +168,10 @@ typedef struct Binary{
     /*  binary headers */
     Header *hd;
 }Binary;
+
+typedef struct {
+  char *insn_buffer;
+  unsigned int reenter;
+}stream_state;
 
 #endif

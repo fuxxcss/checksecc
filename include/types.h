@@ -32,12 +32,6 @@
 /*  max buffer size */
 #define MAXBUF 4096
 
-/*  c bool enum */
-typedef enum{
-    false=0,
-    true
-}bool;
-
 /*  cfo enum    */
 typedef enum {
     cfo_file,

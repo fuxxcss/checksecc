@@ -3,6 +3,7 @@
 #include<string.h>
 #include<dirent.h>
 #include<errno.h>
+#include <stdbool.h>
 #include"functions.h"
 #include"types.h"
 #include"loader.h"

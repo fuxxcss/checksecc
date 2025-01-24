@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include<getopt.h>
 #include<stdint.h>
+#include<stdbool.h>
 #include"functions.h"
 #include"types.h"
 

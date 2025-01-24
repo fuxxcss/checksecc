@@ -3,6 +3,7 @@
 #include<string.h>
 #include<sys/utsname.h>
 #include<zlib.h>
+#include <stdbool.h>
 #include"functions.h"
 #include"types.h"
 #include"loader.h"

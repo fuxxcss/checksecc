@@ -4,7 +4,7 @@ LIB_PATH = $(HOME)/lib
 LIB = $(LIB_PATH)/libchkc.so
 MAIN = $(HOME)/checkc
 LIB_FLAGS = -fsanitize=address -g -I$(INCLUDE) -lssl
-MAIN_FLAGS = -fsanitize=address -g -I$(INCLUDE) -lchkc 
+MAIN_FLAGS = -fsanitize=address -g -I$(INCLUDE) -lchkc -lcapstone
 CC := gcc
 
 all: $(LIB) $(MAIN)

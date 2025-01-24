@@ -5,6 +5,8 @@
 #include<dirent.h>
 #include<string.h>
 #include<fcntl.h>
+#include<stdbool.h>
+#include<capstone/capstone.h>
 #include"functions.h"
 #include"types.h"
 #include"loader.h"
@@ -280,8 +282,39 @@ char *chk_elf_stripped(Binary *elf){
 }
 
 char *chk_elf_frame_pointer(Binary *elf){
+    bool sp = false;
     /*  push rbp / push ebp */
-    return NULL;
+    char *push = "push";
+    char *stack_frame = NULL;
+    switch(elf->bin_arch){
+    case ARCH_X86:
+        stack_frame = "ebp";
+        break;
+    case ARCH_X64:
+        stack_frame = "rbp";
+        break;
+    default:
+        return NULL;
+    }
+    cs_insn *insn;
+    csh handle;
+    size_t count = dis_asm(elf,&handle,&insn);
+    if (count > 0) {
+		size_t j;
+		for (j = 0; j < count; j++) {
+            printf("%s %s\n",insn[j].mnemonic,insn[j].op_str);
+            if(strstr(insn[j].mnemonic,push) && strstr(insn[j].op_str,stack_frame)){
+                printf("%s %s\n",insn[j].mnemonic,insn[j].op_str);
+                sp=true;
+                break;
+            }
+		}
+		cs_free(insn, count);
+        cs_close(&handle);
+	} 
+    else CHK_ERROR4("Failed to disassemble given code.");
+    if(sp) return "\033[31mNot Omit\033[m";
+    else return "\033[32mOmit\033[m";
 }
 /*  
     check sanitized gcc/llvm
@@ -292,7 +325,7 @@ chk_info *chk_elf_sanitized(Binary *elf){
         [asan, tsan, msan, lsan, 
         ubsan, dfsan, safestack]
     */
-    bool san_bool[CHK_SAN_NUM]={false};
+    bool san_boolean[CHK_SAN_NUM]={false};
     char *san_str[CHK_SAN_NUM]={
         "asan",
         "tsan",
@@ -316,14 +349,14 @@ chk_info *chk_elf_sanitized(Binary *elf){
             char *str=str_append("__",san_str[i]);
             size_t size=strlen(str);
             if(strncmp(name,str,size) == 0){
-                san_bool[i]=true;
+                san_boolean[i]=true;
             }
         }
         sym=sym->sym_next;
     }
     
     /*  CHK_CET_NUM 2   */
-    bool cet_bool[CHK_CET_NUM]={false};
+    bool cet_boolean[CHK_CET_NUM]={false};
     char *cet_str[CHK_CET_NUM]={
         "cet-ibt",
         "cet-shadow-stack"
@@ -331,26 +364,30 @@ chk_info *chk_elf_sanitized(Binary *elf){
     /*  
         check indirect branch trace 
         gcc -fcf-protection=full
-        rough implementation:search endbr64, f30f1efa
+        search endbr64 from .text
     */
-    Section *text;
-    Section *sect=elf->sect->sect_next;
-    while(sect){
-        if(strcmp(sect->sect_name,".text") == 0){
-            text=sect;
-            break;
-        }
-        sect=sect->sect_next;
-    }
-    if(!text) CHK_ERROR4("text section not found.");
-    const uint8_t endbr64[5]={0xf3,0x0f,0x1e,0xfa,'\0'};
-    if(strstr(sect->sect_bytes,endbr64)) cet_bool[0]=true;
+    cs_insn *insn;
+    csh handle;
+    size_t count = dis_asm(elf,&handle,&insn);
+    char *endbr64 = "endbr64";
+    if (count > 0) {
+		size_t j;
+		for (j = 0; j < count; j++) {
+            if(strstr(insn[j].mnemonic,endbr64)){
+                cet_boolean[0]=true;
+                break;
+            }
+		}
+		cs_free(insn, count);
+        cs_close(&handle);
+	} 
+    else CHK_ERROR4("Failed to disassemble given code.");
     /*  
         check shadow call stack
         now only for aarch64
         so false
     */
-   cet_bool[1]=false;
+   cet_boolean[1]=false;
    /*   return chk_info */
     char *type="Sanitized ";
     chk_info *info=MALLOC(1,chk_info);
@@ -359,7 +396,7 @@ chk_info *chk_elf_sanitized(Binary *elf){
     for(int i=0;i<CHK_SAN_NUM;i++){
         chk_info *new=MALLOC(1,chk_info);
         new->chk_type=str_append(type,san_str[i]);
-        if(san_bool[i] ==false) new->chk_result="\033[31mNO\033[m";
+        if(san_boolean[i] ==false) new->chk_result="\033[31mNO\033[m";
         else new->chk_result="\033[32mYes\033[m";
         info->chk_next=new;
         info=new;
@@ -367,7 +404,7 @@ chk_info *chk_elf_sanitized(Binary *elf){
     for(int i=0;i<CHK_CET_NUM;i++){
         chk_info *new=MALLOC(1,chk_info);
         new->chk_type=str_append(type,cet_str[i]);
-        if(cet_bool[i] ==false) new->chk_result="\033[31mNO\033[m";
+        if(cet_boolean[i] ==false) new->chk_result="\033[31mNO\033[m";
         else new->chk_result="\033[32mYes\033[m";
         info->chk_next=new;
         info=new;

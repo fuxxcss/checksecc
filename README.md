@@ -169,9 +169,9 @@ https://github.com/fuxxcss/checksecc
 ``` shell
 1. `pe` check
 2. `windows` check
-3. `omit frame pointer` check
-4. `arm64 aarch64` check
-5. other install ways: publish package
+3. `format` output
+4. optimize `dis_asm` , from first user defined function.
+4. other install ways: publish package
 ```
 
 

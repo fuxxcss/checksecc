@@ -1,3 +1,5 @@
+/*  for asprintf, vasprintf */
+#define _GNU_SOURCE
 #include<stdlib.h>
 #include<stdio.h>
 #include<unistd.h>
@@ -5,6 +7,7 @@
 #include<sys/mman.h>
 #include<sys/stat.h>
 #include<fcntl.h>
+#include<capstone/capstone.h>
 #include"loader.h"
 #include"types.h"
 
@@ -569,6 +572,42 @@ void free_binary(Binary *bin){
         free(bin->hd);
     }
     free(bin);
+}
+
+
+size_t dis_asm(Binary *bin,csh *handle,cs_insn **insn){
+    Section *text;
+    Section *sect=bin->sect->sect_next;
+    while(sect){
+        if(strcmp(sect->sect_name,".text") == 0){
+            text=sect;
+            break;
+        }
+        sect=sect->sect_next;
+    }
+    if(!text) LDR_ERROR2(bin->bin_name,"text section not found.");
+	size_t count;
+    enum cs_arch arch;
+    enum cs_mode mode;
+    switch(bin->bin_arch){
+    case ARCH_X86:
+        arch = CS_ARCH_X86;
+        mode = CS_MODE_32;
+        break;
+    case ARCH_X64:
+        arch = CS_ARCH_X86;
+        mode = CS_MODE_64;
+        break;
+    case ARCH_ARM64:
+        arch = CS_ARCH_ARM64;
+        mode =CS_MODE_ARM;
+        break;
+    default:
+        LDR_ERROR2(bin->bin_name,"disasm arch not support.");
+    }
+	if (cs_open(arch, mode, handle) != CS_ERR_OK) return -1;
+	count = cs_disasm(*handle,text->sect_bytes,text->sect_size -1, 0x1000, 0, insn);
+    return count;
 }
 
 void show_symbols(Binary *bin){

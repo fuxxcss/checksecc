@@ -1,5 +1,6 @@
 #ifndef _FUNC_H_
 #define _FUNC_H_
+#include<capstone/capstone.h>
 #include"types.h"
 #include"loader.h"
 
@@ -50,9 +51,17 @@
     size;\
 })
 
+/*  loader func */
+Binary *load_binary(char *fn);
+
+size_t dis_asm(Binary *bin,csh *handle,cs_insn **insn);
+
+void free_binary(Binary *bin);
+
+void free_str();
+
 /*  check files func    */
 void chk_file(char *option,chk_file_option cfo);
-chk_info *chk_file_one_elf(Binary *elf);
 
 /*  check process func  */
 void chk_proc(char *option,chk_proc_option cpo);
