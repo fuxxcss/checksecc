@@ -574,8 +574,8 @@ void free_binary(Binary *bin){
     free(bin);
 }
 
-
 size_t dis_asm(Binary *bin,csh *handle,cs_insn **insn){
+    /*  front two opcodes   */
     Section *text;
     Section *sect=bin->sect->sect_next;
     while(sect){

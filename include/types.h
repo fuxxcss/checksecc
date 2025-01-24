@@ -11,18 +11,14 @@
 #define CHK_SAN_NUM 7
 /*  ibt and shadow-stack    */
 #define CHK_CET_NUM 2
-
 /*  basic pe check functions   */
 #define CHK_PE_BAS_NUM 8
 /*  extented elf check functions    */
 #define CHK_PE_EXT_NUM 2
-
 /*  proc check functions    */
 #define CHK_PROC_NUM 2
-
 /*  kernel check functions    */
 #define CHK_KERN_NUM 9
-
 /*  lib path   */
 #define CHK_LIB_PATH_NUM 3
 /*  libc path ,up to bin_arch  */
@@ -31,6 +27,8 @@
 #define HASHMAP_SIZE (2 << 6)
 /*  max buffer size */
 #define MAXBUF 4096
+/*  black list num  */
+#define BL_NUM 
 
 /*  cfo enum    */
 typedef enum {
