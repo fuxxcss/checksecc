@@ -140,8 +140,16 @@ void load_elf_symbols(Binary *elf){
     /*  symtab  */
     if(sym_addr[0] != 0) load_elf_symbol_funcs(elf,sym_addr[0],size[0],sym_addr[2],SYM_TYPE_FUNC);
     /*  dynsym  */
-    if(sym_addr[1] != 0) load_elf_symbol_funcs(elf,sym_addr[1],size[1],sym_addr[3],SYM_TYPE_DYN_FUNC); 
-    
+    if(sym_addr[1] != 0) {
+        switch(elf->bin_type){
+        case BIN_TYPE_EXEC:
+            load_elf_symbol_funcs(elf,sym_addr[1],size[1],sym_addr[3],SYM_TYPE_DYN_FUNC);
+            break;
+        /*  consider dyn dynsym */
+        case BIN_TYPE_DYN:
+            
+    }
+        }
     if(!sym_addr[0] && !sym_addr[1]) LDR_ERROR1(elf->bin_name,"no symbols.");
 }
 
@@ -575,7 +583,10 @@ void free_binary(Binary *bin){
 }
 
 size_t dis_asm(Binary *bin,csh *handle,cs_insn **insn){
-    /*  front two opcodes   */
+    /*  front two opcodes: 5 bytes  */
+    /*  f3 0f 1e fa endbr64 */
+    /*  55  push rbp/ebp    */
+    unsigned long size = 5;
     Section *text;
     Section *sect=bin->sect->sect_next;
     while(sect){
@@ -586,6 +597,16 @@ size_t dis_asm(Binary *bin,csh *handle,cs_insn **insn){
         sect=sect->sect_next;
     }
     if(!text) LDR_ERROR2(bin->bin_name,"text section not found.");
+    unsigned long offset = 0;
+    /*  func offset */
+    switch(bin->bin_type){
+    case BIN_TYPE_EXEC:
+        offset = bin->entry - text->sect_vma;
+        break;
+    case BIN_TYPE_DYN:
+
+    }
+    
 	size_t count;
     enum cs_arch arch;
     enum cs_mode mode;
