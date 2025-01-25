@@ -6,7 +6,7 @@
    * [Check File](#check-one-elf-file)
    * [Check Kernel](#check-the-kernel)
    * [Check Process](#check-one-process)
-   * [Format Output]()
+   * [Format Output](#format-output)
 * [Version](#version-information)
 * [ToDo](#todo)
 
