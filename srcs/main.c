@@ -16,7 +16,7 @@ static void help(){
       --file-list={file list separated by *}\n\
       --proc-list={proc list separated by *}\n\
       --proc-id={process ID}\n\
-      --kernel[=kconfig]\n\
+      --kernel\n\
       --version\n\
       --help\n\n\
      ## Modifiers\n\
@@ -29,7 +29,7 @@ https://github.com/fuxxcss/checksecc\n\n");
 
 /*  version info    */
 static void version(){
-    printf("checksecc v0.7,fuxxcss\n\
+    printf("checksecc v1.0,fuxxcss\n\
 https://github.com/fuxxcss/checksecc\n\n");
     exit(0);
 }
@@ -114,6 +114,7 @@ static void parse_args(int *pargc,char ***pargv){
             break;
         case 'f':
             OUTPUT=set_format(optarg);
+            break;
         case 'e':
             EXTENTED=true;
             break;

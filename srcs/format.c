@@ -22,7 +22,6 @@ output set_format(char *option){
 }
 
 static void cli_output(chk_info *info){
-    /*  todo: draw color    */
     info=info->chk_next;
     while(info){
         printf("%-28s%s\n",info->chk_type,info->chk_result);
@@ -32,10 +31,14 @@ static void cli_output(chk_info *info){
 
 static void csv_output(chk_info *info){
     info=info->chk_next;
-    printf("%s",info->chk_result);
+    size_t len = strlen(info->chk_result);
+    printf("%.*s",len-3,info->chk_result+5);
     info=info->chk_next;
     while(info){
-        printf(",%s",info->chk_result);
+        size_t len = strlen(info->chk_result);
+        // len of '\033[m' = 3
+        // len of '\033[31m' = 5
+        printf(",%.*s",len-3,info->chk_result+5);
         info=info->chk_next;
     }
     printf("\n");
@@ -46,7 +49,8 @@ static void xml_output(chk_info *info){
     printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     printf("<");
     while(info){
-        printf("%s=\"%s\" ",info->chk_type,info->chk_result);
+        size_t len = strlen(info->chk_result);
+        printf("%s=\"%.*s\" ",info->chk_type,len-3,info->chk_result+5);
         info=info->chk_next;
     }
     printf("/>\n");
@@ -54,12 +58,15 @@ static void xml_output(chk_info *info){
 
 static void json_output(chk_info *info){
     info=info->chk_next;
-    printf("{\"%s\":{",info->chk_result);
+    size_t len = strlen(info->chk_result);
+    printf("{\"%.*s\":{",len-3,info->chk_result+5);
     info=info->chk_next;
-    printf("\"%s\":\"%s\"",info->chk_type,info->chk_result);
+    len = strlen(info->chk_result);
+    printf("\"%s\":\"%.*s\"",info->chk_type,len-3,info->chk_result+5);
     info=info->chk_next;
     while(info){
-        printf(",\"%s\":\"%s\"");
+        len = strlen(info->chk_result);
+        printf(",\"%s\":\"%.*s\"",info->chk_type,len-3,info->chk_result+5);
         info=info->chk_next;
     }
     printf("}}\n");

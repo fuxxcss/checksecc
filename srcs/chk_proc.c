@@ -65,6 +65,7 @@ void chk_linux_proc(char *path,char *pid,char *exe){
     // chk_info
     chk_info *head;
     // chk this exe file
+    // write this func in functions.h
     head=chk_file_one_elf(bin);
     // chk proc feature
     char *(*chk_proc_func[CHK_PROC_NUM])(char *)={
@@ -89,6 +90,8 @@ void chk_linux_proc(char *path,char *pid,char *exe){
     // head insert pid
     chk_info *new=MALLOC(1,chk_info);
     new->chk_type="PID";
+    pid = str_append("\033[36m",pid);
+    pid = str_append(pid,"\033[m");
     new->chk_result=pid;
     new->chk_next=head->chk_next;
     head->chk_next=new;

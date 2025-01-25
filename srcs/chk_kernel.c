@@ -246,6 +246,8 @@ void chk_kernel(char *kernelinfo,char *option){
         /*  head insert kconfig */
         chk_info *kconfig_info=MALLOC(1,chk_info);
         kconfig_info->chk_type="Kconfig";
+        kconfig = str_append("\033[36m",kconfig);
+        kconfig = str_append(kconfig,"\033[m");
         kconfig_info->chk_result=kconfig;
         kconfig_info->chk_next=head->chk_next;
         head->chk_next=kconfig_info;

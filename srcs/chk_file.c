@@ -17,7 +17,9 @@ extern bool DEBUG;
 
 /*  elf name    */
 char *chk_elf_name(Binary *elf){
-    return elf->bin_name;
+    char *ret = str_append("\033[36m",elf->bin_name);
+    ret = str_append(ret,"\033[m");
+    return ret;
 }
 
 /*  check relro */
@@ -302,9 +304,7 @@ char *chk_elf_frame_pointer(Binary *elf){
     if (count > 0) {
 		size_t j;
 		for (j = 0; j < count; j++) {
-            printf("%s %s\n",insn[j].mnemonic,insn[j].op_str);
             if(strstr(insn[j].mnemonic,push) && strstr(insn[j].op_str,stack_frame)){
-                printf("%s %s\n",insn[j].mnemonic,insn[j].op_str);
                 sp=true;
                 break;
             }
@@ -312,7 +312,10 @@ char *chk_elf_frame_pointer(Binary *elf){
 		cs_free(insn, count);
         cs_close(&handle);
 	} 
-    else CHK_ERROR4("Failed to disassemble given code.");
+    else {
+        cs_close(&handle);
+        CHK_ERROR4("Oops! This EXE is Stripped, check frame pointer by yourself.");
+    }
     if(sp) return "\033[31mNot Omit\033[m";
     else return "\033[32mOmit\033[m";
 }
@@ -381,7 +384,10 @@ chk_info *chk_elf_sanitized(Binary *elf){
 		cs_free(insn, count);
         cs_close(&handle);
 	} 
-    else CHK_ERROR4("Failed to disassemble given code.");
+    else {
+        cs_close(&handle);
+        CHK_PRINT1("Oops! This EXE is Stripped, check cet-ibt by yourself.");
+    }
     /*  
         check shadow call stack
         now only for aarch64

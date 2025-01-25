@@ -140,16 +140,8 @@ void load_elf_symbols(Binary *elf){
     /*  symtab  */
     if(sym_addr[0] != 0) load_elf_symbol_funcs(elf,sym_addr[0],size[0],sym_addr[2],SYM_TYPE_FUNC);
     /*  dynsym  */
-    if(sym_addr[1] != 0) {
-        switch(elf->bin_type){
-        case BIN_TYPE_EXEC:
-            load_elf_symbol_funcs(elf,sym_addr[1],size[1],sym_addr[3],SYM_TYPE_DYN_FUNC);
-            break;
-        /*  consider dyn dynsym */
-        case BIN_TYPE_DYN:
-            
-    }
-        }
+    if(sym_addr[1] != 0) load_elf_symbol_funcs(elf,sym_addr[1],size[1],sym_addr[3],SYM_TYPE_DYN_FUNC);
+
     if(!sym_addr[0] && !sym_addr[1]) LDR_ERROR1(elf->bin_name,"no symbols.");
 }
 
@@ -475,8 +467,11 @@ void load_info(Binary *bin){
         load_info_arch(bin,e32fh->e_machine);
         load_info_type(bin,e32fh->e_type);
         /*  DSO do not have entry    */
-        if(bin->bin_type == BIN_TYPE_EXEC)
+        /*  EXEC is DYN if -fPIE is enabled */
+        if(e32fh->e_entry){
+            bin->bin_type = BIN_TYPE_EXEC;
             bin->entry=e32fh->e_entry;
+        }
     }
     else if(*elf == ELF_MAGIC && *elfclass == E64_flag){
         bin->bin_format=BIN_FORMAT_ELF64;
@@ -488,8 +483,11 @@ void load_info(Binary *bin){
         load_info_arch(bin,e64fh->e_machine);
         load_info_type(bin,e64fh->e_type);
         /*  DSO do not have entry    */
-        if(bin->bin_type == BIN_TYPE_EXEC)
+        /*  EXEC is DYN if -fPIE is enabled */
+        if(e64fh->e_entry){
+            bin->bin_type = BIN_TYPE_EXEC;
             bin->entry=e64fh->e_entry;
+        }
     }
     else bin->bin_format=BIN_FORMAT_UNKNOWN;
     /*  Header  loaded  */
@@ -597,17 +595,39 @@ size_t dis_asm(Binary *bin,csh *handle,cs_insn **insn){
         sect=sect->sect_next;
     }
     if(!text) LDR_ERROR2(bin->bin_name,"text section not found.");
-    unsigned long offset = 0;
     /*  func offset */
+    unsigned long offset = 0;
+    Symbol *main_first_func = NULL,*sym;
     switch(bin->bin_type){
     case BIN_TYPE_EXEC:
-        offset = bin->entry - text->sect_vma;
+        /*  locate main */
+        sym = bin->sym->sym_next;
+        while(sym){
+            /*  addr not 0  */
+            if(strcmp(sym->sym_name,"main") == 0){
+                main_first_func = sym;
+                break;
+            }
+            sym = sym->sym_next;
+        }
+        if(!main_first_func) return 0;
+        offset = main_first_func->sym_addr - text->sect_vma;
         break;
     case BIN_TYPE_DYN:
-
+        /*  locate first local func */
+        sym = bin->sym->sym_next;
+        while(sym){
+            /*  addr not 0  */
+            if(sym->sym_addr){
+                main_first_func = sym;
+                break;
+            }
+            sym = sym->sym_next;
+        }
+        offset = main_first_func->sym_addr - text->sect_vma;
+        break;
     }
-    
-	size_t count;
+    size_t count;
     enum cs_arch arch;
     enum cs_mode mode;
     switch(bin->bin_arch){
@@ -627,7 +647,7 @@ size_t dis_asm(Binary *bin,csh *handle,cs_insn **insn){
         LDR_ERROR2(bin->bin_name,"disasm arch not support.");
     }
 	if (cs_open(arch, mode, handle) != CS_ERR_OK) return -1;
-	count = cs_disasm(*handle,text->sect_bytes,text->sect_size -1, 0x1000, 0, insn);
+	count = cs_disasm(*handle,text->sect_bytes + offset, size ,0x1000, 0, insn);
     return count;
 }
 

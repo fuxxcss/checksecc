@@ -6,6 +6,7 @@
    * [Check File](#check-one-elf-file)
    * [Check Kernel](#check-the-kernel)
    * [Check Process](#check-one-process)
+   * [Format Output]()
 * [Version](#version-information)
 * [ToDo](#todo)
 
@@ -16,7 +17,7 @@ checksec.sh is a linux specified gadget,because it used Shell and readelf. If yo
 The checksecc is a c rewrite of checksec and has some highlights. It retains all the core functionality of checksec,you can operate on it just like the original.we removed some uncommon features and added some useful features.
 ``` shell
 > checkc -h or just checkc
-Usage: checkc [--format={cli,csv,xml,json}] [OPTION]
+Usage: checkc [OPTION] [--format={cli,csv,xml,json}]
 
       Options:
       ## Checksecc Options
@@ -25,7 +26,7 @@ Usage: checkc [--format={cli,csv,xml,json}] [OPTION]
       --file-list={file list separated by *}
       --proc-list={proc list separated by *}
       --proc-id={process ID}
-      --kernel[=kconfig]
+      --kernel
       --version
       --help
 
@@ -38,6 +39,10 @@ https://github.com/fuxxcss/checksecc
 ```
 
 ## install 
+install checksecc by release:
+``` shell
+release 1.0 now.
+```
 install checksecc by source:
 ``` shell
 cd srcs
@@ -64,6 +69,7 @@ PIE                         PIE enabled
 RPATH                       NO RPATH
 RUNPATH                     NO RUNPATH
 Stripped                    Not Stripped
+Frame Pointer               Not Omit
 ```
 For example , we compile one file with clang features.
 ``` shell
@@ -80,6 +86,7 @@ PIE                         PIE enabled
 RPATH                       NO RPATH
 RUNPATH                     NO RUNPATH
 Stripped                    Not Stripped
+Frame Pointer               Not Omit
 Sanitized asan              Yes
 Sanitized tsan              NO
 Sanitized msan              NO
@@ -98,19 +105,33 @@ Fortified                   __vsprintf_chk Fortified
 Fortified                   __snprintf_chk Fortified
 Fortified                   __vsnprintf_chk Fortified
 ```
+check one dynamic elf.
+``` shell
+> checkc --file=./libchkc.so
+File                        ./libchkc.so
+RELRO                       Partial RELRO
+STACK CANARY                No Canary found
+NX                          NX enabled
+PIE                         DSO
+RPATH                       NO RPATH
+RUNPATH                     NO RUNPATH
+Stripped                    Stripped
+Frame Pointer               Not Omit
+```
 
 ## check file list
 We need delim * to check file list
 ``` shell
-> checkc --listfile=test*test1*
+> checkc --file-list=test*test1*
 File                        test
-RELRO                       Full RELRO
+RELRO                       Partial RELRO
 STACK CANARY                No Canary found
 NX                          NX enabled
 PIE                         PIE enabled
 RPATH                       NO RPATH
 RUNPATH                     NO RUNPATH
 Stripped                    Not Stripped
+Frame Pointer               Not Omit
 
 File                        test1
 RELRO                       Partial RELRO
@@ -120,6 +141,7 @@ PIE                         PIE enabled
 RPATH                       NO RPATH
 RUNPATH                     NO RUNPATH
 Stripped                    Stripped
+Frame Pointer               NULL
 ```
 
 ## check the kernel
@@ -141,10 +163,10 @@ PTI                         Enabled
 ## check one process
 we focus on selinux and seccomp.
 ``` shell
-> ps -aux | grep 1592
-root        1592  0.0  0.1 320324  8788 ?        Ssl  13:43   0:00 /usr/libexec/upowerd
-> checkc --proc-id=1592
-PID                         1592
+> ps -aux | grep upowerd
+root        1273  0.0  0.1 320404  8828 ?        Ssl  Jan23   0:01 /usr/libexec/upowerd
+> checkc --proc-id=1273
+PID                         1273
 Selinux                     No Selinux
 SECCOMP                     Seccomp-bpf
 File                        /usr/libexec/upowerd
@@ -155,23 +177,34 @@ PIE                         PIE enabled
 RPATH                       NO RPATH
 RUNPATH                     NO RUNPATH
 Stripped                    Stripped
+Frame Pointer               NULL
+```
+
+## format output
+cli is default.
+``` shell
+> checkc --file=./test -format=csv
+./test,Partial RELRO,No Canary found,NX enabled,PIE enabled,NO RPATH,NO RUNPATH,Not Stripped,Not Omit
+> checkc --file=./test -format=xml
+<?xml version="1.0" encoding="UTF-8"?>
+<File="./test" RELRO="Partial RELRO" STACK CANARY="No Canary found" NX="NX enabled" PIE="PIE enabled" RPATH="NO RPATH" RUNPATH="NO RUNPATH" Stripped="Not Stripped" Frame Pointer="Not Omit" />
+> checkc --file=./test -format=json
+{"./test":{"RELRO":"Partial RELRO","STACK CANARY":"No Canary found","NX":"NX enabled","PIE":"PIE enabled","RPATH":"NO RPATH","RUNPATH":"NO RUNPATH","Stripped":"Not Stripped","Frame Pointer":"Not Omit"}}
 ```
 
 ## version information
 ``` shell
 > checkc -v
-checksecc v0.7,fuxxcss
+checksecc v1.0,fuxxcss
 https://github.com/fuxxcss/checksecc
 
 ```
 
 ## ToDo
+todo in version 2.0:
 ``` shell
 1. `pe` check
 2. `windows` check
-3. `format` output
-4. optimize `dis_asm` , from first user defined function.
-4. other install ways: publish package
 ```
 
 
